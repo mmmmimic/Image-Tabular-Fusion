@@ -64,6 +64,7 @@ if __name__ == "__main__":
     def table_transform(df):
         # onehot embedding
         pass
+    
     transforms = {
         'tab_tf': lambda x: x, 
         'img_tf': T.Compose(
