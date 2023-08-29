@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import json
 from PIL import Image
-from tabular_tools import OneHotEmbedder, DefaultEmbedder
+from tabular_tools import OneHotEmbedder, DefaultEmbedder, Scarf
 
 class DVM(Dataset):
     def __init__(self, split: str, transforms: dict, numerical: bool=False, tab_embedder: Any=DefaultEmbedder) -> None:
@@ -41,8 +41,8 @@ class DVM(Dataset):
     def __getitem__(self, index: int) -> dict:
         tab_tf, img_tf = self.transforms['tab_tf'], self.transforms['img_tf']
         # load tabular data
-        tab_line = self.tab_embedder.get_line(self.df, self.meta_info, index)
-        tab_line = tab_tf(tab_line)
+        df = tab_tf(index, self.df)
+        tab_line = self.tab_embedder.get_line(df, self.meta_info, index)
 
         # load image data
         image = Image.open(self.image_paths[index])
@@ -61,18 +61,17 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import torchvision.transforms as T
     
-    def table_transform(df):
-        # onehot embedding
-        pass
+    tab_transform = Scarf(corrupt_rate=0.7)
     
     transforms = {
-        'tab_tf': lambda x: x, 
+        'tab_tf': tab_transform, 
         'img_tf': T.Compose(
             [
                 T.ToTensor()
             ]
         )
     }
+    # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=DefaultEmbedder())
     trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
     data = trainset[100]
     image = data['image']
