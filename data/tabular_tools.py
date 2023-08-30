@@ -72,8 +72,49 @@ class WordEmbedder:
     
 class Scarf:
     def __init__(self, corrupt_rate=0.7) -> None:
-       self.c = corrupt_rate
+      '''
+      Scarf augmentation
+      reference: 
+      https://arxiv.org/pdf/2106.15147.pdf 
+      The key idea is to replace a fraction of features with samples from their marginal distribution, which is built on the full training data
+      '''
+      self.c = corrupt_rate
        
+    def __call__(self, index, tab_data: pd.DataFrame):
+      # output should be another pandas dataframe
+      self.marginal_distributions = tab_data.transpose().values.tolist()
+      corrupt_tab_data = tab_data.copy()
+      corrupt_tab_data.iloc[index,:] = self.corrupt(tab_data.iloc[index,:])
+      return corrupt_tab_data
+
+    def corrupt(self, subject):
+      """
+      Creates a copy of a subject, selects the indices 
+      to be corrupted (determined by hyperparam corruption_rate)
+      and replaces their values with ones sampled from marginal distribution
+      """
+      subject = subject.copy()
+
+      indices = random.sample(list(range(len(subject))), int(len(subject)*self.c)) 
+      
+      for i in indices:
+        subject[i] = random.sample(self.marginal_distributions[i],k=1)[0] 
+      return subject
+    
+    
+class RandomMask: 
+    '''
+    Randomly drop a fraction of tabular features with <mask>. Only applicable to tabular word embeddings.  
+    '''
+    def __init__(self, corrupt_rate=0.7) -> None:
+      '''
+      Scarf augmentation
+      reference: 
+      https://arxiv.org/pdf/2106.15147.pdf 
+      The key idea is to replace a fraction of features with samples from their marginal distribution, which is built on the full training data
+      '''
+      self.c = corrupt_rate
+    
     def __call__(self, index, tab_data: pd.DataFrame):
       # output should be another pandas dataframe
       self.marginal_distributions = tab_data.transpose().values.tolist()
