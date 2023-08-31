@@ -1,8 +1,9 @@
-from typing import Any
 import numpy as np
 import pandas as pd
-import torch.nn.functional as F
 import random
+import clip
+import torch
+
 
 def onehot(tab_value: int, field_length: int) -> np.ndarray:
     # convert a number (category index) to its onehot embedding
@@ -43,13 +44,33 @@ class OneHotEmbedder:
                 line_embd.extend([df[c].values[index]])
 
         line_embd = np.array(line_embd)
-        return line_embd
+        return {
+                'line_embd': line_embd
+                }
 
-class WordEmbedder:
-    def __init__(self, bert) -> None:
-        pass
-        # load pretrained models here
-                
+class TextEmbedder:
+    def __init__(self, cellwise=True, model='clip', withhead=True, word_limit=77) -> None:
+      '''
+      Encode tabular content into word embeddings with a pretrained LLM
+      args:
+        cellwise (bool): if True, tokenize each cell content respectively, 
+        otherwise tokenize the full tabular information will be represented as a sentence
+        model (str): language model type
+        withhead (bool): if the cell sentence includes the table head 
+        word_limit (int): the maximum number of words in each sentence. If a sentence is too long, its words will be randomly dropped
+      '''
+      self.cellwise = cellwise
+      
+      if model == 'clip':
+        self.tokenizer = clip.tokenize
+      elif model == 'roberta':
+        raise NotImplementedError
+      else:
+        raise NameError
+      
+      self.withhead = withhead
+      self.word_limit = word_limit
+          
     def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
         '''
         args
@@ -58,18 +79,28 @@ class WordEmbedder:
             index: line index
         '''
         columns = filter(lambda x: meta_info[x]['type'] in ['continuous', 'categorical'], meta_info.keys())
-        line_embd = []
+        
+        line_sentence = []          
         for c in columns:
-            if meta_info[c]['type'] == 'categorical':
-                line_embd.extend(onehot(int(df[c].values[index]), meta_info[c]['field_length']))
-            else:
-                # continuous values
-                line_embd.extend([df[c].values[index]])
+          if self.withhead:
+            cell_sentence = f"{meta_info[c]['full_name']}: "
+          else:
+            cell_sentence = ''
+          cell_sentence = cell_sentence + str(df[c].values[index])
+          line_sentence.append(cell_sentence)
+        #TODO: Add word limit
+        
+        if not self.cellwise:
+          # combine cell contents into one sentence
+          line_sentence = [', '.join(line_sentence)]
+        line_embd = self.tokenizer(line_sentence)
+          
+        return {
+                'line_embd': line_embd,
+                'line_sentence': line_sentence
+                }
+   
 
-        line_embd = np.array(line_embd)
-        return line_embd    
-    
-    
 class Scarf:
     def __init__(self, corrupt_rate=0.7) -> None:
       '''

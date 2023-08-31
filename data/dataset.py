@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import json
 from PIL import Image
-from tabular_tools import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask
+from tabular_tools import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask, TextEmbedder
 
 class DVM(Dataset):
     def __init__(self, split: str, transforms: dict, numerical: bool=False, tab_embedder: Any=DefaultEmbedder) -> None:
@@ -42,7 +42,8 @@ class DVM(Dataset):
         tab_tf, img_tf = self.transforms['tab_tf'], self.transforms['img_tf']
         # load tabular data
         df = tab_tf(index, self.df)
-        tab_line = self.tab_embedder.get_line(df, self.meta_info, index)
+        line = self.tab_embedder.get_line(df, self.meta_info, index)
+        tab_line = line['line_embd']
 
         # load image data
         image = Image.open(self.image_paths[index])
@@ -72,7 +73,8 @@ if __name__ == "__main__":
             ]
         )
     }
-    trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=DefaultEmbedder())
+    # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=DefaultEmbedder())
+    trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder())
     # trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
     data = trainset[100]
     image = data['image']
