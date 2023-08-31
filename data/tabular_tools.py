@@ -3,7 +3,8 @@ import pandas as pd
 import random
 import clip
 import torch
-
+import regex as re
+from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 
 def onehot(tab_value: int, field_length: int) -> np.ndarray:
     # convert a number (category index) to its onehot embedding
@@ -79,6 +80,7 @@ class TextEmbedder:
             index: line index
         '''
         columns = filter(lambda x: meta_info[x]['type'] in ['continuous', 'categorical'], meta_info.keys())
+        _tokenizer = _Tokenizer()
         
         line_sentence = []          
         for c in columns:
@@ -87,12 +89,20 @@ class TextEmbedder:
           else:
             cell_sentence = ''
           cell_sentence = cell_sentence + str(df[c].values[index])
+          if len(_tokenizer.encode(cell_sentence)) >= self.word_limit:
+            # cutoff
+            cell_sentence = ' '.join(cell_sentence.split[' '][:self.word_limit])
           line_sentence.append(cell_sentence)
-        #TODO: Add word limit
         
         if not self.cellwise:
           # combine cell contents into one sentence
-          line_sentence = [', '.join(line_sentence)]
+          line_sentence = ', '.join(line_sentence)
+          while len(_tokenizer.encode(line_sentence)) >= self.word_limit:
+            short_sentence = line_sentence.split(', ')
+            drop_id = np.random.randint(0, len(short_sentence))
+            short_sentence.pop(drop_id)
+            line_sentence = ', '.join(short_sentence)
+          line_sentence = [line_sentence]   
         line_embd = self.tokenizer(line_sentence)
           
         return {
