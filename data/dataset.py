@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import json
 from PIL import Image
-from tabular_tools import OneHotEmbedder, DefaultEmbedder, Scarf
+from tabular_tools import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask
 
 class DVM(Dataset):
     def __init__(self, split: str, transforms: dict, numerical: bool=False, tab_embedder: Any=DefaultEmbedder) -> None:
@@ -61,7 +61,8 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import torchvision.transforms as T
     
-    tab_transform = Scarf(corrupt_rate=0.7)
+    # tab_transform = Scarf(corrupt_rate=0.7)
+    tab_transform = RandomMask(corrupt_rate=0.7)
     
     transforms = {
         'tab_tf': tab_transform, 
@@ -71,12 +72,12 @@ if __name__ == "__main__":
             ]
         )
     }
-    # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=DefaultEmbedder())
-    trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
+    trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=DefaultEmbedder())
+    # trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
     data = trainset[100]
     image = data['image']
     tab_line = data['tab_line']
     print(tab_line, tab_line.shape)
-    plt.figure()
-    plt.imshow(image.permute(1,2,0).numpy())
-    plt.show()
+    # plt.figure()
+    # plt.imshow(image.permute(1,2,0).numpy())
+    # plt.show()

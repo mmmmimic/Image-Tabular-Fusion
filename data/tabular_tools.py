@@ -117,7 +117,6 @@ class RandomMask:
     
     def __call__(self, index, tab_data: pd.DataFrame):
       # output should be another pandas dataframe
-      self.marginal_distributions = tab_data.transpose().values.tolist()
       corrupt_tab_data = tab_data.copy()
       corrupt_tab_data.iloc[index,:] = self.corrupt(tab_data.iloc[index,:])
       return corrupt_tab_data
@@ -126,12 +125,12 @@ class RandomMask:
       """
       Creates a copy of a subject, selects the indices 
       to be corrupted (determined by hyperparam corruption_rate)
-      and replaces their values with ones sampled from marginal distribution
+      and replaces their values with <mask>
       """
       subject = subject.copy()
 
       indices = random.sample(list(range(len(subject))), int(len(subject)*self.c)) 
       
       for i in indices:
-        subject[i] = random.sample(self.marginal_distributions[i],k=1)[0] 
+        subject[i] = '<mask>'
       return subject
