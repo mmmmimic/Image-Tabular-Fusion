@@ -5,10 +5,16 @@ from data import DVM
 import argparse
 import torch.nn as nn
 import torchvision.transforms as T
+import json
+import os
+import model
 
 parser = argparse.ArgumentParser(
     description='Multimodal segmentation'
 )
+
+parser.add_argument('--exp_name', type=str, metavar='-n', help="experiment name")
+parser.add_argument('--config', type=str, metavar='-c', help="configuration file path")
 parser.add_argument('--batch_size', type=int, default=16, metavar='-b')
 parser.add_argument('--lr', type=float, default=1e-4)
 parser.add_argument('--epoch', type=float, default=1000)
@@ -19,12 +25,21 @@ parser.add_argument('--model', type=str, metavar='-m', help="model type from ['m
 parser.add_argument('--use_gpu', type=bool, default=True)
 parser.add_argument('--optimizer', type=str, default='sgd', help="optimizer from ['sgd', ]")
 parser.add_argument('--augmentation', type=str)
+parser.add_argument('--train', type=bool, default=False)
+parser.add_argument('--tensorboard_log', type=bool, default=True, help="whether activate tensorboard logging")
 
 
 args = parser.parse_args()
 
 def build_model(args):
-    model_type = args.
+    model_type = 0
+
+
+        # backup configs
+
+def build_data(args):
+    pass
+    
 model = 
 optimizer = 
 scheduler = 
