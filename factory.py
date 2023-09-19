@@ -8,21 +8,49 @@ import os
 from torch.utils.data import DataLoader
 from torchsampler import ImbalancedDatasetSampler
 import time
+import torch.nn as nn
 
 
 class ModelWrapper:
     """
     The wrapper wraps an arbitary deep neural network to the format fitting the trainer
     """
-    def __init__(self) -> None:
+    def __init__(self, model, criterion=nn.CrossEntropyLoss) -> None:
+        self.model = model
+        self.criterion = criterion
+    
+    def __call__(self, data) -> Any:
+        label = data['label']
+        logit = self._forward(data)
+        loss = criterion(logit, label)
+        
+    
+    def _forward(self, data):
+        return self.model(data)
+    
+    def _backward(self):
         pass
     
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
+    def __repr__(self) -> str:
+        print(self.model)
+
+class ImageWrapper(ModelWrapper):
+    def __init__(self, model) -> None:
+        super().__init__(model)
+
+    def __call__(self, data) -> Any:
+        self._forward(data)
+    
+    def _forward(self):
         pass
     
     def _backward(self):
         pass
     
+    def _compute_loss(self):
+        pass    
+            
+
 class Trainer:
     """
     The trainer trains or validates an arbitrary model. 
@@ -31,7 +59,7 @@ class Trainer:
         config: configurations of model training
         model: deep neural network that is going to be trained
     """
-    def __init__(self, exp_name, config, model, criterion, tensorboard_log=True) -> None:
+    def __init__(self, exp_name, config, model, tensorboard_log=True) -> None:
         
         # create folders to store trianing logs
         log_root = './logs'
@@ -51,6 +79,7 @@ class Trainer:
         self.weight_decay = config.weight_decay
         self.warmup_steps = config.warmup
         self.checkpoint = config.resume
+        self.optimizer_type = config.optimizer_type
         self.logger = Logger(file_path=training_log_dir, clear=False)
         
         
@@ -69,13 +98,13 @@ class Trainer:
         self._build_optimizer()
         self._build_scheduler()
         
-    def _build_optimizer(self, optimizer_type, lr, weight_decay):
-        if optimizer_type == 'sgd':
-            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=lr, momentum=0.9, weight_decay=weight_decay)
-        elif optimizer_type == 'adam':
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr, weight_decay=weight_decay)
-        elif optimizer_type == 'adamw':
-            self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=lr, weight_decay=weight_decay)
+    def _build_optimizer(self):
+        if self.optimizer_type == 'sgd':
+            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, weight_decay=self.weight_decay)
+        elif self.optimizer_type == 'adam':
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+        elif self.optimizer_type == 'adamw':
+            self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
         else:
             raise NameError
         
@@ -104,12 +133,24 @@ class Trainer:
     
     def _train_one_iter(self):
         pass
+        self.optimizer.step()
+        self.scheduler.step()
+        self.global_step += 1
     
     def _validate_one_iter(self):
         with torch.no_grad():
             pass
+            self.global_step += 1
     
-    def _log(self):
+    def _log(self, msg, v):
+        # log message in log and tensorboard
+        self.logger.fprint(f"{msg} is {v}")
+        self.board.add_scalar(tag=msg, scalar_value=v, global_step=self.global_step)
+    
+    def _draw_curves(self):
+        pass
+    
+    def _draw_example(self):
         pass
     
     def _compute_loss(self):
@@ -120,6 +161,9 @@ class Trainer:
     
     def fit(self, train_data, val_data):
         self._build_data_loader(train_data, val_data)
+        for self.current_epoch in self.epochs:
+            self._train_one_epoch()
+            self._validate_one_epoch()
     
     def predict(self, test_data):
         self._build_data_loader(None, test_data)
@@ -134,4 +178,5 @@ if __name__ == "__main__":
         
     }
     model = torch.nn.Linear(2048, 10)
-    trainer = Trainer(exp_name, configs, model)
+    criterion = nn.CrossEntropy()
+    trainer = Trainer(exp_name, config, model, tensorboard_log=True)

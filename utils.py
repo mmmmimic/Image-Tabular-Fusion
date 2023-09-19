@@ -12,17 +12,17 @@ class Logger:
         print('Log history has been cleaned.')        
     
         
-    def fprint(self, text):
+    def fprint(self, msg):
         with open(self.file_path, 'a+') as f:
-            f.write(text)
+            f.write(msg)
             f.write('\n')
-        print(text)
+        print(msg)
     
-    def warn(self, text, warn_type):
+    def warn(self, msg, warn_type):
         with open(self.file_path, 'a+') as f:
-            f.write(f"{str(warn_type)}: {text}")
+            f.write(f"{str(warn_type)}: {msg}")
             f.write('\n')
-        warnings.warn(text, warn_type)
+        warnings.warn(msg, warn_type)
         
         
 if __name__ == "__main__":
