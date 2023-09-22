@@ -76,20 +76,13 @@ class Trainer:
         model: deep neural network that is going to be trained
     """
     def __init__(self, exp_name, config, model, tensorboard_log=True, checkpoint='', log_root='./logs') -> None:
-        
-        # create folders to store trianing logs
-        exp_dir = pth.join(log_root, exp_name)
-        log_dir = pth.join(exp_dir, 'logs')
+
+        # initiate loggers        
         self.time_stamp = str(time.time()).replace('.', '_')
-        training_log_dir = pth.join(exp_dir, f"log_{self.time_stamp}.log")
+        self._initiate_loggers(log_root, exp_name, tensorboard_log)
         
-        if not pth.exists(log_root):
-           os.mkdir(log_root)
-        if not pth.exists(exp_dir):
-            os.mkdir(exp_dir)
-        if not pth.exists(log_dir):
-            os.mkdir(log_dir) 
-        
+        # read training hyperparams
+        self.config = config
         self.batch_size = config['batch_size']
         self.epochs = config['epochs']
         self.lr = config['lr']
@@ -97,26 +90,42 @@ class Trainer:
         self.warmup_steps = config['warmup_steps']
         self.optimizer_type = config['optimizer_type']
         self.resampling = config['resampling']
-        
-        self.checkpoint = checkpoint
-        self.logger = Logger(file_path=training_log_dir, clear=False)
-        
-        self.tensorboard_log = tensorboard_log
-        if self.tensorboard_log:
-            self.board = SummaryWriter(log_dir=log_dir)
 
         self.model = ModelWrapper(model)
         self.criterion = criterion
         
         self.global_step = 0
-        self.epoch = 0
-        self.current_epoch = 0
+        self.epoch = 0 # epoch counter
+        self.current_epoch = 0 # training start from this epoch
         
         self._build_optimizer()
         self._build_scheduler()
         
         # load checkpoint
         self.checkpoint = checkpoint
+        self._resume_from(checkpoint)
+        
+    def _initiate_loggers(self, log_root, exp_name, tensorboard_log):
+        # create folders to store trianing logs
+        exp_dir = pth.join(log_root, exp_name)
+        log_dir = pth.join(exp_dir, 'logs')
+        training_log_dir = pth.join(exp_dir, f"log_{self.time_stamp}.log")
+        
+        print(f"Initiating logs at {exp_dir}...")
+        print(f"Training logs will be saved at {training_log_dir}.")
+        
+        if not pth.exists(log_root):
+           os.mkdir(log_root)
+        if not pth.exists(exp_dir):
+            os.mkdir(exp_dir)
+        if not pth.exists(log_dir):
+            os.mkdir(log_dir) 
+
+        self.logger = Logger(file_path=training_log_dir, clear=False)
+        
+        self.tensorboard_log = tensorboard_log
+        if self.tensorboard_log:
+            self.board = SummaryWriter(log_dir=log_dir)
         
     def _build_optimizer(self):
         if self.optimizer_type == 'sgd':
@@ -134,21 +143,33 @@ class Trainer:
     def _validate(self, path):
         if not os.path.isfile(path):
             self.logger.fprint(f'{path} is not a file...')
-            raise ValueError
+            return False
         else:
-            self.logger.fprint(f'')
+            self.logger.fprint(f'Resuming training from {path}.')
+            return True
 
     def _load(self):
         # load checkpoint
-        pass
+        raise NotImplementedError
+    
+    def _wrap_checkpoint(self):
+        # update statedict
+        checkpoint = {}
+
+        # save training configs
+        checkpoint['config'] = config
+
+        #         
         
     def _save(self):
         # save checkpoint
         pass
         
-    def _resume_from(self):
+    def _resume_from(self, checkpoint):
         # check if checkpoint is valid
-        self._validate(self.checkpoint)
+        self._validate(checkpoint)
+        
+        raise NotImplementedError
 
     def _build_data_loader(self, train_data, val_data, **kwargs):
         if train_data is not None:
@@ -165,20 +186,20 @@ class Trainer:
             self.test_loader = None
     
     def _train_one_epoch(self):
-        pass
+        raise NotImplementedError
     
     def _validate_one_epoch(self):
-        pass
+        raise NotImplementedError
     
     def _train_one_iter(self):
-        pass
+        raise NotImplementedError
         self.optimizer.step()
         self.scheduler.step()
         self.global_step += 1
     
     def _validate_one_iter(self):
         with torch.no_grad():
-            pass
+            raise NotImplementedError
             self.global_step += 1
     
     def _log(self, msg, v):
@@ -187,16 +208,16 @@ class Trainer:
         self.board.add_scalar(tag=msg, scalar_value=v, global_step=self.global_step)
     
     def _draw_curves(self):
-        pass
+        raise NotImplementedError
     
-    def _draw_example(self):
-        pass
+    def _show_examples(self):
+        raise NotImplementedError
     
     def _compute_loss(self):
-        pass
+        raise NotImplementedError
     
     def _save_checkpoint(self):
-        pass
+        raise NotImplementedError
     
     def fit(self, train_data, val_data=None):
         self._build_data_loader(train_data, val_data)
@@ -210,7 +231,7 @@ class Trainer:
     
     def resume(self):
         # resume from checkpoint
-        pass
+        raise NotImplementedError
 
 if __name__ == "__main__":
     from data import DVM, RandomMask, OneHotEmbedder
@@ -227,6 +248,7 @@ if __name__ == "__main__":
         'optimizer_type': 'adamw',
         'resampling': False
     }
+    
     model = torch.nn.Linear(2048, 10)
     criterion = nn.CrossEntropyLoss()
     tab_transform = RandomMask(corrupt_rate=0.7)
