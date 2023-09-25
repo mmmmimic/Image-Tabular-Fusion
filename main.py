@@ -40,9 +40,9 @@ def build_model(args):
 def build_data(args):
     pass
     
-model = 
-optimizer = 
-scheduler = 
+model = None
+optimizer = None
+scheduler = None
 
 print(args)
 

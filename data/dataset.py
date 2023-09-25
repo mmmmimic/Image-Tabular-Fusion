@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import json
 from PIL import Image
-from tabular_tools import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask, TextEmbedder
+from .tabular_utils import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask, TextEmbedder
 
 class DVM(Dataset):
     def __init__(self, split: str, transforms: dict, numerical: bool=False, tab_embedder: Any=DefaultEmbedder) -> None:
@@ -49,10 +49,17 @@ class DVM(Dataset):
         image = Image.open(self.image_paths[index])
         image = img_tf(image)
         
+        label = self.labels[index]
+        
         return { # wrap up everything in a dictionary
                 'image': image,
-                'tab_line': tab_line
+                'tab_line': tab_line,
+                'label': label
                 }
+        
+    def get_labels(self):
+        # for resampling
+        return self.labels
     
     def __repr__(self) -> str:
         return super().__repr__()
@@ -73,13 +80,16 @@ if __name__ == "__main__":
             ]
         )
     }
+    
     # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=DefaultEmbedder())
     trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder())
     # trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
-    data = trainset[100]
+    data = trainset[0]
     image = data['image']
     tab_line = data['tab_line']
-    print(tab_line, tab_line.shape)
-    # plt.figure()
-    # plt.imshow(image.permute(1,2,0).numpy())
-    # plt.show()
+    label = data['label']
+    print(tab_line, tab_line.shape, label)
+    plt.figure()
+    plt.imshow(image.permute(1,2,0).numpy())
+    plt.show()
+    
