@@ -13,76 +13,123 @@ import torch.nn as nn
 class ModelWrapper(nn.Module):
     """
     The wrapper wraps an arbitary deep neural network to the format fitting the trainer
+    args:
+        model (torch.nn.Module): 
+        metric_names (list[str]): evaluation metrics, can be chosen from ['acc', 'avg_acc', 'auc', 'acc@3', 'acc@5']
+        mode (str): 'accum' or 'avg'. If 'accum', the metric will be computed over the full dataset. 
+        criterion (dict{'loss name': [weight, function]}): cost function dict
     """
-    def __init__(self, model, criterion=nn.CrossEntropyLoss) -> None:
+    def __init__(self, model, criterion={'cse': [1, nn.CrossEntropyLoss()]}) -> None:
         super().__init__()
         self.model = model
         self.criterion = criterion
+        self._loss = 0
+        
+        self.loss_dict = {}
+        for name in criterion.keys():
+            self.loss_dict[name] = 0.
     
     def forward(self, data) -> Any:
-        label = data['label']
         logit = self._forward(data)
-        loss = criterion(logit, label)
-        return loss
+        data['logit'] = logit
+        
+        data['loss_dict'] = self._compute_loss(data)
+        data['loss'] = self.loss
+        
+        return data
         
     def _forward(self, data):
         return self.model(data)
     
     def _backward(self):
-        pass
+        self.model.backward()
     
+    def _compute_loss(self, data):
+        label = data['label']
+        logit = data['logit']
+        self._loss = 0
+        for name in self.criterion.keys():
+            _weight = self.criterion[name][0]
+            _criterion = self.criterion[name][1]
+            if isinstance(_criterion, nn.Module):
+                # torch built-in cost function
+                loss_val =  _criterion(logit, label)
+            else:
+                # custume cost function
+                loss_val =  _criterion(data)
+            self.loss_dict[name] = loss_val
+            self._loss += _weight * loss_val
+
     def __repr__(self) -> str:
         print(self.model)
         
     def _register_buffer(self, x):
         self.model.register_buffer(x)
     
-class ImageWrapper(ModelWrapper):
-    def __init__(self, model) -> None:
-        super().__init__(model)
-
-    def forward(self, data) -> Any:
-        self._forward(data)
+    @property
+    def loss(self):
+        # cost function
+        return self._loss
     
-    def _compute_loss(self):
-        pass    
 
-class TabularWrapper(ModelWrapper):
-    def __init__(self, model) -> None:
-        super().__init__(model)
+# class ImageWrapper(ModelWrapper):
+#     def __init__(self, model) -> None:
+#         super().__init__(model)
 
-    def forward(self, data) -> Any:
-        self._forward(data)
-    
-    def _compute_loss(self):
-        pass    
+#     def _forward(self, data) -> Any:
+#         return self.model(data['image'])
 
-class MultiModalWrapper(ModelWrapper):
-    def __init__(self, model) -> None:
-        super().__init__(model)
+# class TabularWrapper(ModelWrapper):
+#     def __init__(self, model) -> None:
+#         super().__init__(model)
 
-    def forward(self, data) -> Any:
-        self._forward(data)
-    
-    def _compute_loss(self):
-        pass        
+#     def _forward(self, data) -> Any:
+#         return self.model(data['tab_line'])
+
+# class MultiModalWrapper(ModelWrapper):
+#     def __init__(self, model) -> None:
+#         super().__init__(model)
+
+#     def _forward(self, data) -> Any:
+#         return self.model(data['image'], data['tab_line'])
      
 class Trainer:
     """
     The trainer trains or validates an arbitrary model. 
     args:
-        exp_name: experiment name, which decides the log path
-        config: configurations of model training
-        model: deep neural network that is going to be trained
+        exp_name (str): experiment name, which decides the log path
+        config (dict): configurations of model training
+        model (torch.nn.Module): deep neural network that is going to be trained
+        tensorboard_log (bool): if activate tensorboard
+        checkpoint_path (str | None): checkpoint path, None if training from scratch
+        log_root (str): root path of the training logs 
     """
-    def __init__(self, exp_name, config, model, tensorboard_log=True, checkpoint='', log_root='./logs') -> None:
+    def __init__(self, exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs') -> None:
 
         # initiate loggers        
         self.time_stamp = str(time.time()).replace('.', '_')
-        self._initiate_loggers(log_root, exp_name, tensorboard_log)
+        self.exp_dir = pth.join(log_root, exp_name)
+        self._initiate_loggers(log_root, tensorboard_log)
         
         # read training hyperparams
         self.config = config
+        self._initiate_hyperparams()
+        
+        self.model = ModelWrapper(model)
+        
+        self.global_step = 0
+        self.current_epoch = 0 # epoch counter
+        self.start_epoch = 0 # training start from this epoch
+        
+        self._build_optimizer()
+        self._build_scheduler()
+        
+        # load checkpoint
+        self.checkpoint_path = checkpoint_path
+        self._resume_from(checkpoint_path)   
+        
+    def _initiate_hyperparams(self):
+        config = self.config
         self.batch_size = config['batch_size']
         self.epochs = config['epochs']
         self.lr = config['lr']
@@ -90,34 +137,25 @@ class Trainer:
         self.warmup_steps = config['warmup_steps']
         self.optimizer_type = config['optimizer_type']
         self.resampling = config['resampling']
+        self.accum_step = config['accum_step']
+        self.device = torch.device(config['device'])
+        self.mode = config['mode']
+        self.metric_names = config['metric_names']
+        self.metric_monitor = MetricManager(self.metric_names, self.mode)
+        
 
-        self.model = ModelWrapper(model)
-        self.criterion = criterion
-        
-        self.global_step = 0
-        self.epoch = 0 # epoch counter
-        self.current_epoch = 0 # training start from this epoch
-        
-        self._build_optimizer()
-        self._build_scheduler()
-        
-        # load checkpoint
-        self.checkpoint = checkpoint
-        self._resume_from(checkpoint)
-        
-    def _initiate_loggers(self, log_root, exp_name, tensorboard_log):
+    def _initiate_loggers(self, log_root, tensorboard_log):
         # create folders to store trianing logs
-        exp_dir = pth.join(log_root, exp_name)
-        log_dir = pth.join(exp_dir, 'logs')
-        training_log_dir = pth.join(exp_dir, f"log_{self.time_stamp}.log")
+        log_dir = pth.join(self.exp_dir, 'logs')
+        training_log_dir = pth.join(self.exp_dir, f"log_{self.time_stamp}.log")
         
-        print(f"Initiating logs at {exp_dir}...")
+        print(f"Initiating logs at {self.exp_dir}...")
         print(f"Training logs will be saved at {training_log_dir}.")
         
         if not pth.exists(log_root):
            os.mkdir(log_root)
-        if not pth.exists(exp_dir):
-            os.mkdir(exp_dir)
+        if not pth.exists(self.exp_dir):
+            os.mkdir(self.exp_dir)
         if not pth.exists(log_dir):
             os.mkdir(log_dir) 
 
@@ -140,13 +178,22 @@ class Trainer:
     def _build_scheduler(self):
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=self.warmup_steps, T_mult=2, eta_min=1e-8, last_epoch=-1, verbose=True)
 
-    def _validate(self, path):
-        if not os.path.isfile(path):
+    def _validate_and_load(self, path):
+        if path is None:
+            return False
+        elif not os.path.isfile(path):
             self.logger.fprint(f'{path} is not a file...')
             return False
         else:
             self.logger.fprint(f'Resuming training from {path}.')
-            return True
+            try:
+                self.checkpoint = torch.load(path, map_location=self.device)
+                for key in ['config', 'state_dict', 'criterion', 'global_step', 'current_epoch', 'optimizer', 'scheduler']:
+                    assert key in self.checkpoint.keys()
+                return True
+            except:
+                self.logger.fprint(f'{path} is broken.')
+                return False
 
     def _load(self):
         # load checkpoint
@@ -157,19 +204,53 @@ class Trainer:
         checkpoint = {}
 
         # save training configs
-        checkpoint['config'] = config
-
-        #         
+        checkpoint['config'] = self.config # hyperparams are stored here
         
-    def _save(self):
-        # save checkpoint
-        pass
+        # save model parameters
+        checkpoint['state_dict'] = self.model.state_dict()
+        checkpoint['criterion'] = self.criterion
         
-    def _resume_from(self, checkpoint):
+        # save optimizers and schedulers
+        checkpoint['global_step'] = self.global_step
+        checkpoint['current_epoch'] = self.current_epoch
+        checkpoint['optimizer_state'] = self.optimizer.state_dict()
+        checkpoint['scheduler_state'] = self.scheduler.state_dict()
+        
+        self.checkpoint = checkpoint
+    
+    def _wrap_and_save(self, mode):
+        assert mode in ['checkpoint', 'best_model', 'last_model']
+        self._wrap_checkpoint()
+        save_folder = pth.join(self.exp_dir, 'models')
+        if not pth.isdir(save_folder):
+            os.mkdir(save_folder)
+        name = f"{mode}_{str(time.time()).replace('.', '_')}_epoch{self.current_epoch}.t7"
+        save_path = pth.join(save_folder, name)
+        torch.save(self.checkpoint, save_path)
+        
+    def _resume_from(self, checkpoint_path):
         # check if checkpoint is valid
-        self._validate(checkpoint)
-        
-        raise NotImplementedError
+        if self._validate_and_load(checkpoint_path):
+            # read training hyperparams
+            self.config = self.checkpoint['config']
+            self._initiate_hyperparams()
+
+            self.model = self.model.load_state_dict(self.checkpoint['state_dict'])
+            self.criterion = self.checkpoint['criterion']
+            
+            self.global_step = self.checkpoint['global_step']
+            self.current_epoch = self.checkpoint['current_epoch'] # epoch counter
+            self.start_epoch = self.checkpoint['current_epoch'] # training start from this epoch
+            
+            self._build_optimizer()
+            self._build_scheduler()
+            
+            self.optimizer.load_state_dict(self.checkpoint['optimizer_state'])
+            self.scheduler.load_state_dict(self.checkpoint['scheduler_state'])
+            
+        else:
+            self.checkpoint = {}
+            self.logger.fprint('Training from scratch.')
 
     def _build_data_loader(self, train_data, val_data, **kwargs):
         if train_data is not None:
@@ -186,6 +267,8 @@ class Trainer:
             self.test_loader = None
     
     def _train_one_epoch(self):
+        data['metric_dict'] = self.metric_monitor.metric_values
+        data['metric_report'] = self.metric_monitor.summarization
         raise NotImplementedError
     
     def _validate_one_epoch(self):
@@ -193,17 +276,20 @@ class Trainer:
     
     def _train_one_iter(self):
         raise NotImplementedError
-        self.optimizer.step()
+        self.metric_monitor.update(logit, label)
+        if not self.global_step % self.accum_step:
+            self.optimizer.step()
         self.scheduler.step()
         self.global_step += 1
+        
     
     def _validate_one_iter(self):
         with torch.no_grad():
             raise NotImplementedError
             self.global_step += 1
     
-    def _log(self, msg, v):
-        # log message in log and tensorboard
+    def _save_var(self, msg, v):
+        # save a variable, log message in log and tensorboard
         self.logger.fprint(f"{msg} is {v}")
         self.board.add_scalar(tag=msg, scalar_value=v, global_step=self.global_step)
     
@@ -214,17 +300,17 @@ class Trainer:
         raise NotImplementedError
     
     def _compute_loss(self):
-        raise NotImplementedError
-    
-    def _save_checkpoint(self):
-        raise NotImplementedError
+        return self.model.loss
     
     def fit(self, train_data, val_data=None):
-        self._build_data_loader(train_data, val_data)
-        
-        for self.current_epoch in range(self.epochs):
-            self._train_one_epoch()
-            self._validate_one_epoch()
+        try:
+            self._build_data_loader(train_data, val_data)
+            
+            for self.current_epoch in range(self.start_epoch, self.epochs):
+                self._train_one_epoch()
+                self._validate_one_epoch()
+        except KeyboardInterrupt:
+            self._wrap_and_save('checkpoint')
     
     def predict(self, test_data):
         self._build_data_loader(None, test_data)
@@ -246,11 +332,12 @@ if __name__ == "__main__":
         'warmup_steps': 1000,
         'checkpoint': None,
         'optimizer_type': 'adamw',
-        'resampling': False
+        'resampling': False,
+        'device': 'cuda'
     }
     
     model = torch.nn.Linear(2048, 10)
-    criterion = nn.CrossEntropyLoss()
+    criterion = {'cse': nn.CrossEntropyLoss()}
     tab_transform = RandomMask(corrupt_rate=0.7)
     transforms = {
         'tab_tf': tab_transform, 
@@ -263,5 +350,7 @@ if __name__ == "__main__":
     trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=OneHotEmbedder)
     valset = DVM(split='val', transforms=transforms, numerical=False, tab_embedder=OneHotEmbedder)
     
-    trainer = Trainer(exp_name, config, model, tensorboard_log=True)
+    trainer = Trainer(exp_name, config, model, criterion, tensorboard_log=True)
     trainer.fit(trainset, valset)
+    
+    print('-------------------------------------------')
