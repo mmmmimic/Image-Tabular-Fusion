@@ -13,22 +13,26 @@ def onehot(tab_value: int, field_length: int) -> np.ndarray:
     return onehot_array
 
 class DefaultEmbedder:
-    def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
-        '''
-        args
-            df: a pandas dataframe
-            meta: the meta information of the dataframe (column names, field length)
-            index: line index
-        '''
-        columns = filter(lambda x: meta_info[x]['type'] in ['continuous', 'categorical'], meta_info.keys())
-        line_embd = []
-        for c in columns:
-            line_embd.append(df[c].values[index])
-        line_embd = np.array(line_embd)
-        return line_embd        
+  def __init__(self):
+    pass
+  
+  def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
+      '''
+      args
+          df: a pandas dataframe
+          meta: the meta information of the dataframe (column names, field length)
+          index: line index
+      '''
+      columns = filter(lambda x: meta_info[x]['type'] in ['continuous', 'categorical'], meta_info.keys())
+      line_embd = []
+      for c in columns:
+          line_embd.append(df[c].values[index])
+      line_embd = np.array(line_embd)
+      line_embd = torch.tensor(line_embd)
+      return line_embd        
     
-class OneHotEmbedder:
-    def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
+class OneHotEmbedder(DefaultEmbedder):
+  def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
         '''
         args
             df: a pandas dataframe
@@ -45,11 +49,12 @@ class OneHotEmbedder:
                 line_embd.extend([df[c].values[index]])
 
         line_embd = np.array(line_embd)
+        line_embd = torch.tensor(line_embd)
         return {
                 'line_embd': line_embd
                 }
 
-class TextEmbedder:
+class TextEmbedder(DefaultEmbedder):
     def __init__(self, cellwise=True, model='clip', withhead=True, word_limit=77) -> None:
       '''
       Encode tabular content into word embeddings with a pretrained LLM
@@ -172,4 +177,5 @@ class RandomMask:
       
       for i in indices:
         subject[i] = '<mask>'
+        
       return subject

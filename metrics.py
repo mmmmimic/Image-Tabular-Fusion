@@ -34,6 +34,10 @@ class AverageMeter:
     def avg(self):
         return self._avg
     
+    @property
+    def sum(self):
+        return self._sum
+    
 class MetricManager:
     def __init__(self, metric_names, mode='avg') -> None:
         assert mode in ['avg', 'accum']
@@ -76,25 +80,28 @@ class MetricManager:
             self.logits = self.detach(logits)
             self.gts = self.detach(gts)
         elif self.mode == 'accum':
-            self.gts = [np.concatenate(self.gts.append(self.detach(gts)), axis=0)]
-            self.logits = [np.concatenate(self.logits.append(self.detach(logits)), axis=0)]
-            self.preds = [np.concatenate(self.preds.append(self.detach(preds)), axis=0)]
-        
+            self.gts.extend(self.detach(gts))
+            self.logits.extend(self.detach(logits))
+            self.preds.extend(self.detach(preds))
+            
+            # if not len(self.gts):
+            #     self.gts.append(self.detach(gts))
+            #     self.logits.append(self.detach(logits))
+            #     self.preds.append(self.detach(preds))
+            # else:
+            #     self.gts = [np.concatenate(self.gts.append(self.detach(gts)), axis=0)]
+            #     self.logits = [np.concatenate(self.logits.append(self.detach(logits)), axis=0)]
+            #     self.preds = [np.concatenate(self.preds.append(self.detach(preds)), axis=0)]
         batch_size = preds.shape[0]
         
-        metric_vals = self.get_metric()
-        
-        for name, val_ in zip(self.metric_names, metric_vals):
-            if self.mode == 'avg':
-                self.val[name].update(val_, n=batch_size)
-            elif self.mode == 'accum':
-                self.val[name] = val_
+        if self.mode == 'avg':
+            metric_vals = self.get_metric()
+            
+            for name, val_ in zip(self.metric_names, metric_vals):
+                    self.val[name].update(val_, n=batch_size)
         
     def get_metric(self):
-        if self.mode == 'avg':
-            preds, logits, gts = self.preds, self.logits, self.gts
-        elif self.mode == 'accum':
-            preds, logits, gts = self.preds[0], self.logits[0], self.gts[0]
+        preds, logits, gts = np.array(self.preds), np.array(self.logits), np.array(self.gts)
         metric_vals = map(lambda name: self.map_dict[name](preds, logits, gts), self.metric_names)
             
         return metric_vals
@@ -106,6 +113,10 @@ class MetricManager:
             for name in self.metric_names:
                 vals[name] = self.val[name].avg
         elif self.mode == 'accum':
+            # only compute once
+            metric_vals = self.get_metric()
+            for name, val_ in zip(self.metric_names, metric_vals):
+                self.val[name] = val_
             vals = self.val
         return vals
     
@@ -114,13 +125,13 @@ class MetricManager:
         # return a string containing all the metric values
         s = ''
         for v in self.metric_values:
-            s += f"{v}: {self.metric_values[v]}"
+            s += f"{v}: {self.metric_values[v]:.4f}"
             s += ', '
         s = s[:-2]
         return s
     
 if __name__ == "__main__":
-    meter = MetricManager(metric_names=['acc', 'auc', 'avg_acc', 'acc@5'], mode='avg')
+    meter = MetricManager(metric_names=['acc', 'auc', 'avg_acc', 'acc@5'], mode='accum')
     logits = torch.rand(32, 100)
     gts = torch.rand(32, 100)
     gts = torch.argmax(gts, dim=1)
