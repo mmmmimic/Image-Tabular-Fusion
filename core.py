@@ -9,90 +9,74 @@ from torch.utils.data import DataLoader
 from torchsampler import ImbalancedDatasetSampler
 import time
 import torch.nn as nn
+from tqdm import tqdm
+import numpy as np
+
+import warnings
+with warnings.catch_warnings():
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 class ModelWrapper(nn.Module):
     """
     The wrapper wraps an arbitary deep neural network to the format fitting the trainer
     args:
         model (torch.nn.Module): 
-        metric_names (list[str]): evaluation metrics, can be chosen from ['acc', 'avg_acc', 'auc', 'acc@3', 'acc@5']
-        mode (str): 'accum' or 'avg'. If 'accum', the metric will be computed over the full dataset. 
         criterion (dict{'loss name': [weight, function]}): cost function dict
     """
-    def __init__(self, model, criterion={'cse': [1, nn.CrossEntropyLoss()]}) -> None:
+    def __init__(self, model, device) -> None:
         super().__init__()
         self.model = model
-        self.criterion = criterion
-        self._loss = 0
-        
-        self.loss_dict = {}
-        for name in criterion.keys():
-            self.loss_dict[name] = 0.
+        self.device = device
+        self.model.to(device)
     
     def forward(self, data) -> Any:
-        logit = self._forward(data)
-        data['logit'] = logit
-        
-        data['loss_dict'] = self._compute_loss(data)
-        data['loss'] = self.loss
-        
-        return data
+        outputs = self._forward(data)
+        if isinstance(outputs, dict):
+            return outputs
+        else:
+            logit = outputs
+            data['logit'] = logit
+            return data
         
     def _forward(self, data):
-        return self.model(data)
-    
-    def _backward(self):
-        self.model.backward()
-    
-    def _compute_loss(self, data):
-        label = data['label']
-        logit = data['logit']
-        self._loss = 0
-        for name in self.criterion.keys():
-            _weight = self.criterion[name][0]
-            _criterion = self.criterion[name][1]
-            if isinstance(_criterion, nn.Module):
-                # torch built-in cost function
-                loss_val =  _criterion(logit, label)
-            else:
-                # custume cost function
-                loss_val =  _criterion(data)
-            self.loss_dict[name] = loss_val
-            self._loss += _weight * loss_val
+        return self.model(data.to(self.device))
 
     def __repr__(self) -> str:
-        print(self.model)
+        return(str(self.model))
         
     def _register_buffer(self, x):
         self.model.register_buffer(x)
+
+class ImageWrapper(ModelWrapper):
+    def __init__(self, model, device) -> None:
+        super().__init__(model, device)
+
+    def _forward(self, data) -> Any:
+        return self.model(data['image'].to(self.device))
+
+class TabularWrapper(ModelWrapper):
+    def __init__(self, model, device) -> None:
+        super().__init__(model, device)
+
+    def _forward(self, data) -> Any:
+        return self.model(data['tab_line'].to(self.device))
+
+class MultiModalWrapper(ModelWrapper):
+    def __init__(self, model, device) -> None:
+        super().__init__(model, device)
+
+    def _forward(self, data) -> Any:
+        return self.model(data['image'].to(self.device), data['tab_line'].to(self.device))
     
-    @property
-    def loss(self):
-        # cost function
-        return self._loss
+class StandardWrapper(ModelWrapper):
+    def __init__(self, model, device) -> None:
+        super().__init__(model, device)
     
-
-# class ImageWrapper(ModelWrapper):
-#     def __init__(self, model) -> None:
-#         super().__init__(model)
-
-#     def _forward(self, data) -> Any:
-#         return self.model(data['image'])
-
-# class TabularWrapper(ModelWrapper):
-#     def __init__(self, model) -> None:
-#         super().__init__(model)
-
-#     def _forward(self, data) -> Any:
-#         return self.model(data['tab_line'])
-
-# class MultiModalWrapper(ModelWrapper):
-#     def __init__(self, model) -> None:
-#         super().__init__(model)
-
-#     def _forward(self, data) -> Any:
-#         return self.model(data['image'], data['tab_line'])
-     
+    def forward(self, data) -> Any:
+        image, label = data
+        logit = self._forward(image)
+        return {'image': image, 'label': label, 'logit': logit}
+            
 class Trainer:
     """
     The trainer trains or validates an arbitrary model. 
@@ -104,7 +88,7 @@ class Trainer:
         checkpoint_path (str | None): checkpoint path, None if training from scratch
         log_root (str): root path of the training logs 
     """
-    def __init__(self, exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs') -> None:
+    def __init__(self, exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', wrapper='image', *args, **kwargs) -> None:
 
         # initiate loggers        
         self.time_stamp = str(time.time()).replace('.', '_')
@@ -115,11 +99,15 @@ class Trainer:
         self.config = config
         self._initiate_hyperparams()
         
-        self.model = ModelWrapper(model)
+        # wrap up the model
+        self.model = model
+        self._initiate_wrapper(wrapper)
         
         self.global_step = 0
         self.current_epoch = 0 # epoch counter
         self.start_epoch = 0 # training start from this epoch
+        self.best_epoch = 0
+        self.best_metric = 0.
         
         self._build_optimizer()
         self._build_scheduler()
@@ -137,13 +125,15 @@ class Trainer:
         self.warmup_steps = config['warmup_steps']
         self.optimizer_type = config['optimizer_type']
         self.resampling = config['resampling']
-        self.accum_step = config['accum_step']
         self.device = torch.device(config['device'])
-        self.mode = config['mode']
-        self.metric_names = config['metric_names']
-        self.metric_monitor = MetricManager(self.metric_names, self.mode)
         
-
+        self.accum_step = config['accum_step']
+        self.mode = config['mode']
+        self.metric_names = config['metric_names']        
+        self.criterion = config['criterion']
+        
+        self.monitor_metric = config['monitor_metric']
+        
     def _initiate_loggers(self, log_root, tensorboard_log):
         # create folders to store trianing logs
         log_dir = pth.join(self.exp_dir, 'logs')
@@ -164,6 +154,21 @@ class Trainer:
         self.tensorboard_log = tensorboard_log
         if self.tensorboard_log:
             self.board = SummaryWriter(log_dir=log_dir)
+
+    def _initiate_wrapper(self, wrapper):
+        if wrapper == 'image':
+            self.model = ImageWrapper(model, self.device)       
+        elif wrapper == 'tabular':
+            self.model = TabularWrapper(model, self.device)
+        elif wrapper == 'multimodal':
+            self.model = MultiModalWrapper(model, self.device)
+        elif wrapper == 'standard':
+            self.model = StandardWrapper(model, self.device)
+        else:
+            self.model = ModelWrapper(model, self.device)   
+        
+        self.logger.fprint('Model structure: ')    
+        self.logger.fprint(self.model.__repr__())  
         
     def _build_optimizer(self):
         if self.optimizer_type == 'sgd':
@@ -176,7 +181,7 @@ class Trainer:
             raise NameError
         
     def _build_scheduler(self):
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=self.warmup_steps, T_mult=2, eta_min=1e-8, last_epoch=-1, verbose=True)
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=self.warmup_steps, T_mult=2, eta_min=1e-8, last_epoch=-1, verbose=False)
 
     def _validate_and_load(self, path):
         if path is None:
@@ -188,16 +193,12 @@ class Trainer:
             self.logger.fprint(f'Resuming training from {path}.')
             try:
                 self.checkpoint = torch.load(path, map_location=self.device)
-                for key in ['config', 'state_dict', 'criterion', 'global_step', 'current_epoch', 'optimizer', 'scheduler']:
+                for key in ['config', 'state_dict', 'criterion', 'global_step', 'current_epoch', 'optimizer_state', 'scheduler_state', 'best_epoch', 'best_metric']:
                     assert key in self.checkpoint.keys()
                 return True
             except:
                 self.logger.fprint(f'{path} is broken.')
                 return False
-
-    def _load(self):
-        # load checkpoint
-        raise NotImplementedError
     
     def _wrap_checkpoint(self):
         # update statedict
@@ -213,13 +214,15 @@ class Trainer:
         # save optimizers and schedulers
         checkpoint['global_step'] = self.global_step
         checkpoint['current_epoch'] = self.current_epoch
+        checkpoint['best_epoch'] = self.best_epoch
+        checkpoint['best_metric'] = self.best_metric
         checkpoint['optimizer_state'] = self.optimizer.state_dict()
         checkpoint['scheduler_state'] = self.scheduler.state_dict()
         
         self.checkpoint = checkpoint
     
     def _wrap_and_save(self, mode):
-        assert mode in ['checkpoint', 'best_model', 'last_model']
+        assert mode in ['checkpoint', 'best_model', 'last_model', 'backup']
         self._wrap_checkpoint()
         save_folder = pth.join(self.exp_dir, 'models')
         if not pth.isdir(save_folder):
@@ -235,12 +238,14 @@ class Trainer:
             self.config = self.checkpoint['config']
             self._initiate_hyperparams()
 
-            self.model = self.model.load_state_dict(self.checkpoint['state_dict'])
+            self.model.load_state_dict(self.checkpoint['state_dict'])
             self.criterion = self.checkpoint['criterion']
             
             self.global_step = self.checkpoint['global_step']
             self.current_epoch = self.checkpoint['current_epoch'] # epoch counter
             self.start_epoch = self.checkpoint['current_epoch'] # training start from this epoch
+            self.best_epoch = self.checkpoint['best_epoch']
+            self.best_metric = self.checkpoint['best_metric']
             
             self._build_optimizer()
             self._build_scheduler()
@@ -250,8 +255,7 @@ class Trainer:
             
         else:
             self.checkpoint = {}
-            self.logger.fprint('Training from scratch.')
-
+            
     def _build_data_loader(self, train_data, val_data, **kwargs):
         if train_data is not None:
             if self.resampling:
@@ -266,66 +270,171 @@ class Trainer:
         else:
             self.test_loader = None
     
+    def _prepare_monitors(self):
+        self.loss = AverageMeter()
+        self.loss_dict = {}
+        self.loss_monitor = {}
+        for name in criterion.keys():
+            self.loss_monitor[name] = AverageMeter()
+            self.loss_dict[name] = 0.
+            
+        self.metric_monitor = MetricManager(self.metric_names, self.mode)
+
     def _train_one_epoch(self):
-        data['metric_dict'] = self.metric_monitor.metric_values
-        data['metric_report'] = self.metric_monitor.summarization
-        raise NotImplementedError
-    
-    def _validate_one_epoch(self):
-        raise NotImplementedError
-    
-    def _train_one_iter(self):
-        raise NotImplementedError
-        self.metric_monitor.update(logit, label)
-        if not self.global_step % self.accum_step:
-            self.optimizer.step()
-        self.scheduler.step()
-        self.global_step += 1
+        # train
+        self.model.train()
+        self._prepare_monitors()
         
-    
+        for self.data in tqdm(self.train_loader):
+            self._train_one_iter()
+            
+        train_metric_dict = self.metric_monitor.metric_values
+        train_metric_report = self.metric_monitor.summarization
+        train_loss_dict = self.loss_dict
+        train_loss_report = self._report_loss()  
+                    
+        # saving metrics and losses to tensorboard
+        self._save_dict(train_metric_dict, 'train')
+        self._save_dict(train_loss_dict, 'train')        
+            
+        msg = f'epoch {self.current_epoch}' + '\n' + '<--[TRAINING]--> ' + train_loss_report + '\n' + train_metric_report
+        self.logger.fprint(msg)
+        
+    def _validate_one_epoch(self):
+        # validation    
+        self.model.eval()
+        self._prepare_monitors()
+        for self.data in tqdm(self.test_loader):
+            self._validate_one_iter()
+               
+    def _train_one_iter(self):
+        self.optimizer.zero_grad()
+        self.data = self.model(self.data)
+        
+        logit, label = self.data['logit'], self.data['label']
+        
+        self.metric_monitor.update(logit, label)
+        
+        self._compute_loss()
+                
+        if not self.global_step % self.accum_step:
+            self._save_var('loss_train', self.loss.avg)
+            self.loss.sum.backward()
+            self.optimizer.step()
+            self.loss._reset()
+            
+        self.scheduler.step() # for each step, update the scheduler
+        
+        self.global_step += 1
+         
     def _validate_one_iter(self):
         with torch.no_grad():
-            raise NotImplementedError
-            self.global_step += 1
+            self.data = self.model(self.data)
+            
+            logit, label = self.data['logit'], self.data['label']
+            
+            self.metric_monitor.update(logit, label)
+            self._compute_loss()
+                        
+    def _save_dict(self, d, prefix):
+        for name in d.keys():
+            self._save_var(name + f'_{prefix}', d[name])
     
-    def _save_var(self, msg, v):
+    def _save_var(self, name, value):
         # save a variable, log message in log and tensorboard
-        self.logger.fprint(f"{msg} is {v}")
-        self.board.add_scalar(tag=msg, scalar_value=v, global_step=self.global_step)
-    
-    def _draw_curves(self):
-        raise NotImplementedError
+        if self.tensorboard_log:
+            self.board.add_scalar(tag=name, scalar_value=value, global_step=self.global_step)
     
     def _show_examples(self):
         raise NotImplementedError
     
     def _compute_loss(self):
-        return self.model.loss
+        label = self.data['label'].to(self.device)
+        logit = self.data['logit']
+        batch_size = logit.size(0)
+        _loss = 0.
+        for name in self.criterion.keys():
+            _weight = self.criterion[name][0]
+            _criterion = self.criterion[name][1]
+            if isinstance(_criterion, nn.Module):
+                # torch built-in cost function
+                loss_val =  _criterion(logit, label)
+            else:
+                # custume cost function
+                loss_val =  _criterion(self.data)
+            self.loss_monitor[name].update(loss_val.item(), batch_size)
+            _loss += _weight * loss_val
+            self.loss_dict[name] = self.loss_monitor[name].avg
+        
+        self.loss.update(_loss, batch_size)
+            
+    def _report_loss(self):
+        loss_report = ''
+        for name in self.loss_dict.keys():
+            loss_report += f'{name}: {self.loss_dict[name]:.4f}, '
+        loss_report = loss_report[:-2]
+        return loss_report
     
     def fit(self, train_data, val_data=None):
-        try:
             self._build_data_loader(train_data, val_data)
             
             for self.current_epoch in range(self.start_epoch, self.epochs):
                 self._train_one_epoch()
                 self._validate_one_epoch()
-        except KeyboardInterrupt:
-            self._wrap_and_save('checkpoint')
+                
+                eval_metric_dict = self.metric_monitor.metric_values
+                eval_metric_report = self.metric_monitor.summarization
+                eval_loss_dict = self.loss_dict 
+                eval_loss_report = self._report_loss()
+                
+                # saving metrics and losses to tensorboard
+                self._save_dict(eval_metric_dict, 'eval')
+                self._save_dict(eval_loss_dict, 'eval')
+                self._save_var('loss_eval', self.loss.avg)
+                
+                msg  = '<--[VALIDATION]--> ' + eval_loss_report + '\n' + eval_metric_report
+                self.logger.fprint(msg)
+                
+                # save the best model
+                if eval_metric_dict[self.monitor_metric] > self.best_metric:
+                    self.best_metric = eval_metric_dict[self.monitor_metric]
+                    self.best_epoch = self.current_epoch
+                    self.logger.fprint(f'[MODEL SAVED] epoch {self.best_epoch}, with {self.monitor_metric} = {self.best_metric:.4f}.')
+                    # remove the previous best model
+                    os.system(f"rm {pth.join(self.exp_dir, 'models', 'best_model*')}")
+                    self._wrap_and_save(mode='best_model')
+                
+                self.logger.fprint(f'Best {self.monitor_metric}: {self.best_metric:.4f} at epoch {self.best_epoch}')  
+                              
+                if not self.current_epoch % 100:
+                    self.logger.fprint(f'[CHECKPOINT SAVED] epoch {self.current_epoch}.')
+                    self._wrap_and_save(mode='checkpoint')        
+                    
+                self.logger.fprint('\n')
+
+            self.logger.fprint(f'[MODEL SAVED] epoch {self.current_epoch}.')
+            self._wrap_and_save(mode='last_model')
     
     def predict(self, test_data):
+        self.logger.fprint('Start validation.')
         self._build_data_loader(None, test_data)
-    
-    def resume(self):
-        # resume from checkpoint
-        raise NotImplementedError
+        self._validate_one_epoch()
+        
+        # report result
+        eval_metric_report = self.metric_monitor.summarization
+        eval_loss_report = self._report_loss()
+        
+        msg  = '<--[TEST]--> ' + eval_loss_report + '\n' + eval_metric_report
+        self.logger.fprint(msg)
+        
 
 if __name__ == "__main__":
-    from data import DVM, RandomMask, OneHotEmbedder
+    from data import DVM, OneHotEmbedder, Scarf
     import torchvision.transforms as T
     
     exp_name = "test_exp"
     config = {
-        'batch_size': 32,
+        'batch_size': 128,
         'epochs': 1000,
         'lr': 1e-4,
         'weight_decay': 1e-5,
@@ -333,24 +442,45 @@ if __name__ == "__main__":
         'checkpoint': None,
         'optimizer_type': 'adamw',
         'resampling': False,
-        'device': 'cuda'
+        'device': 'cuda',
+        'accum_step': 1, # update model parameters in each iteration
+        'mode': 'accum',
+        'metric_names': ['acc', 'avg_acc'],
+        'criterion': {'cse': [1, nn.CrossEntropyLoss()]},
+        'monitor_metric': 'acc'
     }
     
-    model = torch.nn.Linear(2048, 10)
+    model = nn.Sequential(
+                    nn.Linear(63, 2048),
+                    nn.ReLU(),
+                    nn.Linear(2048, 286) # 286 categories in total
+                        )
+    # model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+    # model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+    # model.fc = nn.Linear(in_features=512, out_features=10, bias=True)
+    
     criterion = {'cse': nn.CrossEntropyLoss()}
-    tab_transform = RandomMask(corrupt_rate=0.7)
+    
+    tab_transform = Scarf(corrupt_rate=0.7)
     transforms = {
-        'tab_tf': tab_transform, 
+        # 'tab_tf': tab_transform,
+        'tab_tf': lambda x, y: y,  
         'img_tf': T.Compose(
             [
                 T.ToTensor()
             ]
         )
     }
-    trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=OneHotEmbedder)
-    valset = DVM(split='val', transforms=transforms, numerical=False, tab_embedder=OneHotEmbedder)
+    trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
+    valset = DVM(split='val', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
+    testset = DVM(split='test', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
     
-    trainer = Trainer(exp_name, config, model, criterion, tensorboard_log=True)
-    trainer.fit(trainset, valset)
+    # import torchvision
+    # trainset = torchvision.datasets.CIFAR10(root='.', train=True, transform=T.ToTensor(), download=False)
+    # valset = torchvision.datasets.CIFAR10(root='.', train=False, transform=T.ToTensor(), download=False)
+    
+    trainer = Trainer(exp_name, config, model, tensorboard_log=False, checkpoint_path='logs/test_exp/models/best_model_1695785721_9514947_epoch317.t7', log_root='./logs', wrapper='tabular')
+    # trainer.fit(trainset, valset)
+    trainer.predict(testset)
     
     print('-------------------------------------------')
