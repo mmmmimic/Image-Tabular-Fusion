@@ -5,9 +5,11 @@ import numpy as np
 import json
 from PIL import Image
 from .tabular_utils import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask, TextEmbedder
+import os.path as pth
+import torch
 
 class DVM(Dataset):
-    def __init__(self, split: str, transforms: dict, numerical: bool=False, tab_embedder: Any=DefaultEmbedder) -> None:
+    def __init__(self, split: str, transforms: dict, numerical: bool=False, tab_embedder: Any=DefaultEmbedder(), root_dir:str='data/dvm_car') -> None:
         '''
         Args:
             split (str): data split, can be 'train', 'val', or 'test'
@@ -18,11 +20,13 @@ class DVM(Dataset):
         super(DVM).__init__()
         self.split = split
         # tabular data
-        self.df = pd.read_csv(f'data/dvm_car/{split}_df_full.csv')
-        self.labels = np.load(f'data/dvm_car/{split}_labels.npy')
+        self.df = pd.read_csv(pth.join(root_dir, f'{split}_df_full.csv'))
+        self.labels = np.load(pth.join(root_dir, f'{split}_labels.npy'))
+        
         assert len(self.df) == len(self.labels),'Label is inconsistent with the tabular data'
+        
         # load tabular data meta infomation, including column field length and type
-        with open('data/dvm_car/meta.json', 'r') as f:
+        with open(pth.join(root_dir, 'meta.json'), 'r') as f:
             self.meta_info = json.load(f)
         
         self.transforms = transforms
@@ -33,7 +37,7 @@ class DVM(Dataset):
         
         self.tab_embedder = tab_embedder
         
-        self.image_paths = np.load(f'data/dvm_car/{split}_paths.npy')
+        self.image_paths = np.load(pth.join(root_dir, f'{split}_paths.npy'))
         
     def __len__(self):
         return len(self.df)
@@ -52,8 +56,8 @@ class DVM(Dataset):
         label = self.labels[index]
         
         return { # wrap up everything in a dictionary
-                'image': image,
-                'tab_line': tab_line,
+                'image': image.float(),
+                'tab_line': tab_line.float(),
                 'label': label
                 }
         
@@ -69,8 +73,8 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import torchvision.transforms as T
     
-    # tab_transform = Scarf(corrupt_rate=0.7)
-    tab_transform = RandomMask(corrupt_rate=0.7)
+    tab_transform = Scarf(corrupt_rate=0.7)
+    # tab_transform = RandomMask(corrupt_rate=0.7)
     
     transforms = {
         'tab_tf': tab_transform, 
@@ -82,8 +86,8 @@ if __name__ == "__main__":
     }
     
     # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=DefaultEmbedder())
-    trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder())
-    # trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
+    # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder())
+    trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
     data = trainset[0]
     image = data['image']
     tab_line = data['tab_line']
