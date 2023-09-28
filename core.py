@@ -18,8 +18,8 @@ class ModelWrapper(nn.Module):
     """
     The wrapper wraps an arbitary deep neural network to the format fitting the trainer
     args:
-        model (torch.nn.Module): 
-        criterion (dict{'loss name': [weight, function]}): cost function dict
+        model (torch.nn.Module)
+        device (torch.device)
     """
     def __init__(self, model, device) -> None:
         super().__init__()
@@ -28,16 +28,27 @@ class ModelWrapper(nn.Module):
         self.model.to(device)
     
     def forward(self, data) -> Any:
+        # input data can be a tensor, a list, or a dictionary
+        data = self._to_device(data)
         outputs = self._forward(data)
-        if isinstance(outputs, dict):
-            return outputs
-        else:
-            logit = outputs
-            data['logit'] = logit
-            return data
+        return outputs
         
     def _forward(self, data):
-        return self.model(data.to(self.device))
+        return self.model(data)
+        
+    def _to_device(self, x):
+        if isinstance(x, torch.Tensor):
+            return x.to(self.device)
+        elif isinstance(x, dict):
+            for name in x.keys():
+                x[name] = x['name'].to(self.device)
+            return x
+        elif isinstance(x, list):
+            for i in range(len(x)):
+                x[i] = x[i].to(self.device)
+            return x
+        else:
+            raise TypeError
 
     def __repr__(self) -> str:
         return(str(self.model))
@@ -45,39 +56,35 @@ class ModelWrapper(nn.Module):
     def _register_buffer(self, x):
         self.model.register_buffer(x)
 
-class ImageWrapper(ModelWrapper):
+class DictWrapper(ModelWrapper):
     def __init__(self, model, device) -> None:
         super().__init__(model, device)
 
-    def _forward(self, data) -> Any:
-        # input format: {'image': image, 'label': label}
-        return self.model(data['image'].to(self.device))
-
-class TabularWrapper(ModelWrapper):
-    def __init__(self, model, device) -> None:
-        super().__init__(model, device)
-
-    def _forward(self, data) -> Any:
-        # input format: {'tab_line': tab_line, 'label': label}
-        return self.model(data['tab_line'].to(self.device))
-
-class MultiModalWrapper(ModelWrapper):
-    def __init__(self, model, device) -> None:
-        super().__init__(model, device)
-
-    def _forward(self, data) -> Any:
-        # input format: {'image': image, 'tab_line': tab_line, 'label': label}
-        return self.model(data['image'].to(self.device), data['tab_line'].to(self.device))
+    def _forward(self, data):
+        # input data can be a tensor, a list, or a dictionary
+        data = self._to_device(data)
+        outputs = self._forward(data)
+        return outputs  
     
-class StandardWrapper(ModelWrapper):
+    def _forward(self, data):
+        # type check
+        assert isinstance(data, dict)
+        return self.model(**data)    
+
+class TupleWrapper(ModelWrapper):
     def __init__(self, model, device) -> None:
         super().__init__(model, device)
     
-    def forward(self, data) -> Any:
-        # input format: (image, label) or (tab_line, label)
+    def forward(self, data):
+        data = self._to_device(data)
+        logit = self._forward(data)
         image, label = data
-        logit = self._forward(image)
         return {'image': image, 'label': label, 'logit': logit}
+    
+    def _forward(self, data):
+        # type check
+        assert isinstance(data, list) and (len(data)==2) # <image, label>
+        return self.model(data[0])  
             
 class Trainer:
     """
@@ -90,7 +97,7 @@ class Trainer:
         checkpoint_path (str | None): checkpoint path, None if training from scratch
         log_root (str): root path of the training logs 
     """
-    def __init__(self, exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', wrapper='image', criterion = {}, *args, **kwargs) -> None:
+    def __init__(self, exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', criterion = {}) -> None:
 
         # initiate loggers        
         self.time_stamp = str(time.time()).replace('.', '_')
@@ -103,7 +110,8 @@ class Trainer:
         
         # wrap up the model
         self.model = model
-        self._initiate_wrapper(wrapper)
+        self.logger.fprint('Model structure: ')    
+        self.logger.fprint(self.model.__repr__())  
         
         self.criterion = criterion
         self.global_step = 0
@@ -168,30 +176,18 @@ class Trainer:
         if self.tensorboard_log:
             self.board = SummaryWriter(log_dir=log_dir)
 
-    def _initiate_wrapper(self, wrapper):
-        if wrapper == 'image':
-            self.model = ImageWrapper(model, self.device)       
-        elif wrapper == 'tabular':
-            self.model = TabularWrapper(model, self.device)
-        elif wrapper == 'multimodal':
-            self.model = MultiModalWrapper(model, self.device)
-        elif wrapper == 'standard':
-            self.model = StandardWrapper(model, self.device)
-        else:
-            self.model = ModelWrapper(model, self.device)   
-        
-        self.logger.fprint('Model structure: ')    
-        self.logger.fprint(self.model.__repr__())  
-
     def _setup_seed(self):
         seed = self.seed
-        self.logger.fprint(f'Random seed is fixed at {seed}.')
-        torch.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-        np.random.seed(seed)
-        random.seed(seed)
-        torch.backends.cudnn.deterministic = True        
-        
+        if seed >= 0:
+            self.logger.fprint(f'Random seed is fixed at {seed}.')
+            torch.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+            np.random.seed(seed)
+            random.seed(seed)
+            torch.backends.cudnn.deterministic = True     
+        else:
+            self.logger.fprint(f'Random seed is not fixed.')
+                       
     def _build_optimizer(self):
         if self.optimizer_type == 'sgd':
             self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, weight_decay=self.weight_decay)
@@ -203,8 +199,11 @@ class Trainer:
             raise NameError
         
     def _build_scheduler(self):
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=self.warmup_steps, T_mult=2, eta_min=1e-8, last_epoch=-1, verbose=False)
-
+        if self.warmup_steps:
+            self.scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(self.optimizer, T_0=self.warmup_steps, T_mult=2, eta_min=0, last_epoch=-1, verbose=False)
+        else:
+            self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, mode='max', factor=0.5, patience=20, min_lr=1e-8)
+            
     def _validate_and_load(self, path):
         if path is None:
             return False
@@ -278,19 +277,32 @@ class Trainer:
     def _build_data_loader(self, train_data, val_data, **kwargs):
         if train_data is not None:
             if self.resampling:
-                self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, sampler=ImbalancedDatasetSampler(train_data), **kwargs)
+                self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, sampler=ImbalancedDatasetSampler(train_data), 
+                                               num_workers=self.batch_size, **kwargs)
             else:
-                self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, shuffle=True, **kwargs)
+                self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, shuffle=True, num_workers=8, **kwargs)
         else:
             self.train_loader = None
                 
         if val_data is not None:
-            self.test_loader = DataLoader(dataset=val_data, batch_size=self.batch_size, shuffle=False, **kwargs)
+            self.test_loader = DataLoader(dataset=val_data, batch_size=self.batch_size, shuffle=False, num_workers=8, **kwargs)
         else:
             self.test_loader = None
-    
+
+    def _wrap_model(self, data):
+            sample = data[0]
+            print(type(sample))
+            if isinstance(sample, dict):
+                self.model = DictWrapper(self.model, self.device)
+            elif isinstance(sample, tuple):
+                self.model = TupleWrapper(self.model, self.device)
+            else:
+                self.logger.fprint(f'Illegal input type {type(sample)}!')
+                raise TypeError        
+
     def _prepare_monitors(self):
-        self.loss = AverageMeter()
+        self.loss = AverageMeter() # display loss
+        self.batch_loss = 0 # batch loss for backward
         self.loss_dict = {}
         self.loss_monitor = {}
         
@@ -303,6 +315,7 @@ class Trainer:
     def _train_one_epoch(self):
         # train
         self.model.train()
+        self.optimizer.zero_grad()
         self._prepare_monitors()
         
         for self.data in tqdm(self.train_loader):
@@ -317,9 +330,9 @@ class Trainer:
         self._save_dict(train_metric_dict, 'train')
         self._save_dict(train_loss_dict, 'train')        
             
-        msg = f'epoch {self.current_epoch}' + '\n' + '<--[TRAINING]--> ' + train_loss_report + '\n' + train_metric_report
+        msg = f'epoch {self.current_epoch}' + '\n' + '<--[TRAINING]--> ' + train_loss_report + ' | ' + train_metric_report
         self.logger.fprint(msg)
-        
+               
     def _validate_one_epoch(self):
         # validation    
         self.model.eval()
@@ -328,7 +341,6 @@ class Trainer:
             self._validate_one_iter()
                
     def _train_one_iter(self):
-        self.optimizer.zero_grad()
         self.data = self.model(self.data)
         
         logit, label = self.data['logit'], self.data['label']
@@ -336,14 +348,18 @@ class Trainer:
         self.metric_monitor.update(logit, label)
         
         self._compute_loss()
-                
+        self.batch_loss.backward()
+        self._save_var('loss_train', self.loss.avg) 
+                      
         if not self.global_step % self.accum_step:
-            self._save_var('loss_train', self.loss.avg)
-            self.loss.sum.backward()
             self.optimizer.step()
-            self.loss._reset()
+            self.optimizer.zero_grad()
             
-        self.scheduler.step() # for each step, update the scheduler
+        if self.warmup_steps:
+            self.scheduler.step() # for each step, update the scheduler
+            
+        # self._save_var('learning rate', self.scheduler.get_last_lr()[-1])
+        self._save_var('learning rate', self.optimizer.state_dict()['param_groups'][0]['lr'])
         
         self.global_step += 1
          
@@ -365,9 +381,6 @@ class Trainer:
         if self.tensorboard_log:
             self.board.add_scalar(tag=name, scalar_value=value, global_step=self.global_step)
     
-    def _show_examples(self):
-        raise NotImplementedError
-    
     def _compute_loss(self):
         label = self.data['label'].to(self.device)
         logit = self.data['logit']
@@ -387,6 +400,7 @@ class Trainer:
             self.loss_dict[name] = self.loss_monitor[name].avg
         
         self.loss.update(_loss, batch_size)
+        self.batch_loss = _loss
             
     def _report_loss(self):
         loss_report = ''
@@ -396,48 +410,56 @@ class Trainer:
         return loss_report
     
     def fit(self, train_data, val_data=None):
-            self._build_data_loader(train_data, val_data)
+        self._build_data_loader(train_data, val_data)
+        self._wrap_model(train_data)
+        
+        for self.current_epoch in range(self.start_epoch, self.epochs):
+            self._train_one_epoch()
+            self._validate_one_epoch()
             
-            for self.current_epoch in range(self.start_epoch, self.epochs):
-                self._train_one_epoch()
-                self._validate_one_epoch()
-                
-                eval_metric_dict = self.metric_monitor.metric_values
-                eval_metric_report = self.metric_monitor.summarization
-                eval_loss_dict = self.loss_dict 
-                eval_loss_report = self._report_loss()
-                
-                # saving metrics and losses to tensorboard
-                self._save_dict(eval_metric_dict, 'eval')
-                self._save_dict(eval_loss_dict, 'eval')
-                self._save_var('loss_eval', self.loss.avg)
-                
-                msg  = '<--[VALIDATION]--> ' + eval_loss_report + '\n' + eval_metric_report
-                self.logger.fprint(msg)
-                
-                # save the best model
-                if eval_metric_dict[self.monitor_metric] > self.best_metric:
-                    self.best_metric = eval_metric_dict[self.monitor_metric]
-                    self.best_epoch = self.current_epoch
-                    self.logger.fprint(f'[MODEL SAVED] epoch {self.best_epoch}, with {self.monitor_metric} = {self.best_metric:.4f}.')
-                    # remove the previous best model
-                    os.system(f"rm {pth.join(self.exp_dir, 'models', 'best_model*')}")
-                    self._wrap_and_save(mode='best_model')
-                
-                self.logger.fprint(f'Best {self.monitor_metric}: {self.best_metric:.4f} at epoch {self.best_epoch}')  
-                              
-                if not self.current_epoch % 100:
-                    self.logger.fprint(f'[CHECKPOINT SAVED] epoch {self.current_epoch}.')
-                    self._wrap_and_save(mode='checkpoint')        
-                    
-                self.logger.fprint('\n')
+            eval_metric_dict = self.metric_monitor.metric_values
+            eval_metric_report = self.metric_monitor.summarization
+            eval_loss_dict = self.loss_dict 
+            eval_loss_report = self._report_loss()
+            
+            # saving metrics and losses to tensorboard
+            self._save_dict(eval_metric_dict, 'eval')
+            self._save_dict(eval_loss_dict, 'eval')
+            self._save_var('loss_eval', self.loss.avg)
+            
+            msg  = '<--[VALIDATION]--> ' + eval_loss_report + ' | ' + eval_metric_report
+            self.logger.fprint(msg)
 
-            self.logger.fprint(f'[MODEL SAVED] epoch {self.current_epoch}.')
-            self._wrap_and_save(mode='last_model')
+            if not self.warmup_steps:
+                self.scheduler.step(eval_metric_dict[self.monitor_metric])
+            
+            # save the best model
+            if eval_metric_dict[self.monitor_metric] > self.best_metric:
+                self.best_metric = eval_metric_dict[self.monitor_metric]
+                self.best_epoch = self.current_epoch
+                self.logger.fprint(f'[MODEL SAVED] epoch {self.best_epoch}, with {self.monitor_metric} = {self.best_metric:.4f}.')
+                # remove the previous best model
+                if self.best_metric:
+                    os.system(f"rm {pth.join(self.exp_dir, 'models', 'best_model*')}")
+                self._wrap_and_save(mode='best_model')
+            
+            self.logger.fprint(f'Best {self.monitor_metric}: {self.best_metric:.4f} at epoch {self.best_epoch}')  
+                            
+            if not self.current_epoch % 100:
+                self.logger.fprint(f'[CHECKPOINT SAVED] epoch {self.current_epoch}.')
+                self._wrap_and_save(mode='checkpoint')        
+                
+            self.logger.fprint('\n')
+
+        self.logger.fprint(f'[MODEL SAVED] epoch {self.current_epoch}.')
+        self._wrap_and_save(mode='last_model')
     
     def predict(self, test_data):
         self.logger.fprint('Start validation.')
         self._build_data_loader(None, test_data)
+        self._wrap_model(test_data)
+        
+        self.mode = 'accum' # for validation, mode must be 'accum'
         self._validate_one_epoch()
         
         # report result
@@ -468,6 +490,7 @@ class Trainer:
         self.predict(test_data)           
         
 if __name__ == "__main__":
+    # test trainer on the CIFAR10 dataset
     import torchvision.transforms as T
     import torchvision
     
@@ -475,31 +498,39 @@ if __name__ == "__main__":
     config = {
         'batch_size': 128,
         'epochs': 10,
-        'lr': 1e-4,
-        'weight_decay': 1e-5,
-        'warmup_steps': 1000,
-        'optimizer_type': 'adamw',
+        'lr': 1e-2,
+        'weight_decay': 5e-4,
+        'warmup_steps': 0, # reduceonpleatau
+        'optimizer_type': 'sgd',
         'resampling': False,
         'device': 'cuda',
         'accum_step': 1, # update model parameters in each iteration
-        'mode': 'accum',
+        'mode': 'avg',
         'metric_names': ['acc'],
         'monitor_metric': 'acc',
-        'seed': 2023
+        'seed': -1 # no fixed random seed
     }
+    model = torchvision.models.convnext_base(weights=torchvision.models.convnext.ConvNeXt_Base_Weights)
+    model.classifier[2] = nn.Linear(in_features=1024, out_features=100, bias=True)
     
-    model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
-    model.fc = nn.Linear(in_features=512, out_features=10, bias=True) # 10 classes
-    
-    trainset = torchvision.datasets.CIFAR10(root='.', train=True, transform=T.ToTensor(), download=False)
-    valset = torchvision.datasets.CIFAR10(root='.', train=False, transform=T.ToTensor(), download=False)
+    trainset = torchvision.datasets.CIFAR100(root='./data', train=True, transform=T.Compose(
+        [
+            T.RandomCrop((32, 32), padding=4),
+            T.RandomHorizontalFlip(),
+            T.ToTensor(),
+            T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ]
+        ), download=True)
+    valset = torchvision.datasets.CIFAR100(root='./data', train=False, transform=T.Compose([T.ToTensor(), 
+            T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]), download=True)
     
     criterion = {'cse': [1, nn.CrossEntropyLoss()]}
     
     # train
-    trainer = Trainer(exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', wrapper='standard', criterion=criterion)
+    trainer = Trainer(exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', criterion=criterion)
     trainer.fit(trainset, valset)
     
     # validation
-    trainer = Trainer(exp_name, config, model, tensorboard_log=False, checkpoint_path=None, log_root='./logs', wrapper='standard', criterion=criterion)
+    trainer = Trainer(exp_name, config, model, tensorboard_log=False, checkpoint_path=None, log_root='./logs', criterion=criterion)
     trainer.predict_on_best(valset)
+    

@@ -6,7 +6,6 @@ import json
 from PIL import Image
 from .tabular_utils import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask, TextEmbedder
 import os.path as pth
-import torch
 
 class DVM(Dataset):
     def __init__(self, split: str, transforms: dict, numerical: bool=False, tab_embedder: Any=DefaultEmbedder(), root_dir:str='data/dvm_car') -> None:
