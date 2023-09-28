@@ -11,10 +11,8 @@ import time
 import torch.nn as nn
 from tqdm import tqdm
 import numpy as np
-
-import warnings
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
+from glob import glob
+import random
 
 class ModelWrapper(nn.Module):
     """
@@ -52,6 +50,7 @@ class ImageWrapper(ModelWrapper):
         super().__init__(model, device)
 
     def _forward(self, data) -> Any:
+        # input format: {'image': image, 'label': label}
         return self.model(data['image'].to(self.device))
 
 class TabularWrapper(ModelWrapper):
@@ -59,6 +58,7 @@ class TabularWrapper(ModelWrapper):
         super().__init__(model, device)
 
     def _forward(self, data) -> Any:
+        # input format: {'tab_line': tab_line, 'label': label}
         return self.model(data['tab_line'].to(self.device))
 
 class MultiModalWrapper(ModelWrapper):
@@ -66,6 +66,7 @@ class MultiModalWrapper(ModelWrapper):
         super().__init__(model, device)
 
     def _forward(self, data) -> Any:
+        # input format: {'image': image, 'tab_line': tab_line, 'label': label}
         return self.model(data['image'].to(self.device), data['tab_line'].to(self.device))
     
 class StandardWrapper(ModelWrapper):
@@ -73,6 +74,7 @@ class StandardWrapper(ModelWrapper):
         super().__init__(model, device)
     
     def forward(self, data) -> Any:
+        # input format: (image, label) or (tab_line, label)
         image, label = data
         logit = self._forward(image)
         return {'image': image, 'label': label, 'logit': logit}
@@ -88,7 +90,7 @@ class Trainer:
         checkpoint_path (str | None): checkpoint path, None if training from scratch
         log_root (str): root path of the training logs 
     """
-    def __init__(self, exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', wrapper='image', *args, **kwargs) -> None:
+    def __init__(self, exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', wrapper='image', criterion = {}, *args, **kwargs) -> None:
 
         # initiate loggers        
         self.time_stamp = str(time.time()).replace('.', '_')
@@ -103,6 +105,7 @@ class Trainer:
         self.model = model
         self._initiate_wrapper(wrapper)
         
+        self.criterion = criterion
         self.global_step = 0
         self.current_epoch = 0 # epoch counter
         self.start_epoch = 0 # training start from this epoch
@@ -118,6 +121,12 @@ class Trainer:
         
     def _initiate_hyperparams(self):
         config = self.config
+        
+        self.logger.fprint('----------------------------\n')
+        self.logger.fprint('Training configurations')
+        self.logger.fprint(str(config))
+        self.logger.fprint('----------------------------\n')
+        
         self.batch_size = config['batch_size']
         self.epochs = config['epochs']
         self.lr = config['lr']
@@ -126,11 +135,12 @@ class Trainer:
         self.optimizer_type = config['optimizer_type']
         self.resampling = config['resampling']
         self.device = torch.device(config['device'])
+        self.seed = config['seed']
+        self._setup_seed()
         
         self.accum_step = config['accum_step']
         self.mode = config['mode']
         self.metric_names = config['metric_names']        
-        self.criterion = config['criterion']
         
         self.monitor_metric = config['monitor_metric']
         
@@ -138,6 +148,7 @@ class Trainer:
         # create folders to store trianing logs
         log_dir = pth.join(self.exp_dir, 'logs')
         training_log_dir = pth.join(self.exp_dir, f"log_{self.time_stamp}.log")
+        self.model_folder = pth.join(self.exp_dir, 'models')
         
         print(f"Initiating logs at {self.exp_dir}...")
         print(f"Training logs will be saved at {training_log_dir}.")
@@ -148,6 +159,8 @@ class Trainer:
             os.mkdir(self.exp_dir)
         if not pth.exists(log_dir):
             os.mkdir(log_dir) 
+        if not pth.isdir(self.model_folder):
+            os.mkdir(self.model_folder)
 
         self.logger = Logger(file_path=training_log_dir, clear=False)
         
@@ -169,6 +182,15 @@ class Trainer:
         
         self.logger.fprint('Model structure: ')    
         self.logger.fprint(self.model.__repr__())  
+
+    def _setup_seed(self):
+        seed = self.seed
+        self.logger.fprint(f'Random seed is fixed at {seed}.')
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        np.random.seed(seed)
+        random.seed(seed)
+        torch.backends.cudnn.deterministic = True        
         
     def _build_optimizer(self):
         if self.optimizer_type == 'sgd':
@@ -224,11 +246,8 @@ class Trainer:
     def _wrap_and_save(self, mode):
         assert mode in ['checkpoint', 'best_model', 'last_model', 'backup']
         self._wrap_checkpoint()
-        save_folder = pth.join(self.exp_dir, 'models')
-        if not pth.isdir(save_folder):
-            os.mkdir(save_folder)
         name = f"{mode}_{str(time.time()).replace('.', '_')}_epoch{self.current_epoch}.t7"
-        save_path = pth.join(save_folder, name)
+        save_path = pth.join(self.model_folder, name)
         torch.save(self.checkpoint, save_path)
         
     def _resume_from(self, checkpoint_path):
@@ -274,7 +293,8 @@ class Trainer:
         self.loss = AverageMeter()
         self.loss_dict = {}
         self.loss_monitor = {}
-        for name in criterion.keys():
+        
+        for name in self.criterion.keys():
             self.loss_monitor[name] = AverageMeter()
             self.loss_dict[name] = 0.
             
@@ -426,61 +446,60 @@ class Trainer:
         
         msg  = '<--[TEST]--> ' + eval_loss_report + '\n' + eval_metric_report
         self.logger.fprint(msg)
-        
 
+    def predict_on_best(self, test_data):
+        # load best model 
+        self.logger.fprint('Validate on the best model.')
+        model_path = glob(pth.join(self.model_folder, 'best_model*'))
+        assert len(model_path) == 1, f'pretrained weights in {model_path} is not unique.'
+        
+        self.checkpoint_path = model_path[0]
+        self._resume_from(self.checkpoint_path)    
+        self.predict(test_data)
+    
+    def predict_on_last(self, test_data):
+        # load last model
+        self.logger.fprint('Validate on the last model.')
+        model_path = glob(pth.join(self.model_folder, 'last_model*'))
+        assert len(model_path) == 1, f'pretrained weights in {model_path} is not unique.'
+        
+        self.checkpoint_path = model_path[0]
+        self._resume_from(self.checkpoint_path)    
+        self.predict(test_data)           
+        
 if __name__ == "__main__":
-    from data import DVM, OneHotEmbedder, Scarf
     import torchvision.transforms as T
+    import torchvision
     
     exp_name = "test_exp"
     config = {
         'batch_size': 128,
-        'epochs': 1000,
+        'epochs': 10,
         'lr': 1e-4,
         'weight_decay': 1e-5,
         'warmup_steps': 1000,
-        'checkpoint': None,
         'optimizer_type': 'adamw',
         'resampling': False,
         'device': 'cuda',
         'accum_step': 1, # update model parameters in each iteration
         'mode': 'accum',
-        'metric_names': ['acc', 'avg_acc'],
-        'criterion': {'cse': [1, nn.CrossEntropyLoss()]},
-        'monitor_metric': 'acc'
+        'metric_names': ['acc'],
+        'monitor_metric': 'acc',
+        'seed': 2023
     }
     
-    model = nn.Sequential(
-                    nn.Linear(63, 2048),
-                    nn.ReLU(),
-                    nn.Linear(2048, 286) # 286 categories in total
-                        )
-    # model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
-    # model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
-    # model.fc = nn.Linear(in_features=512, out_features=10, bias=True)
+    model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+    model.fc = nn.Linear(in_features=512, out_features=10, bias=True) # 10 classes
     
-    criterion = {'cse': nn.CrossEntropyLoss()}
+    trainset = torchvision.datasets.CIFAR10(root='.', train=True, transform=T.ToTensor(), download=False)
+    valset = torchvision.datasets.CIFAR10(root='.', train=False, transform=T.ToTensor(), download=False)
     
-    tab_transform = Scarf(corrupt_rate=0.7)
-    transforms = {
-        # 'tab_tf': tab_transform,
-        'tab_tf': lambda x, y: y,  
-        'img_tf': T.Compose(
-            [
-                T.ToTensor()
-            ]
-        )
-    }
-    trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
-    valset = DVM(split='val', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
-    testset = DVM(split='test', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
+    criterion = {'cse': [1, nn.CrossEntropyLoss()]}
     
-    # import torchvision
-    # trainset = torchvision.datasets.CIFAR10(root='.', train=True, transform=T.ToTensor(), download=False)
-    # valset = torchvision.datasets.CIFAR10(root='.', train=False, transform=T.ToTensor(), download=False)
+    # train
+    trainer = Trainer(exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', wrapper='standard', criterion=criterion)
+    trainer.fit(trainset, valset)
     
-    trainer = Trainer(exp_name, config, model, tensorboard_log=False, checkpoint_path='logs/test_exp/models/best_model_1695785721_9514947_epoch317.t7', log_root='./logs', wrapper='tabular')
-    # trainer.fit(trainset, valset)
-    trainer.predict(testset)
-    
-    print('-------------------------------------------')
+    # validation
+    trainer = Trainer(exp_name, config, model, tensorboard_log=False, checkpoint_path=None, log_root='./logs', wrapper='standard', criterion=criterion)
+    trainer.predict_on_best(valset)
