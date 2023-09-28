@@ -13,6 +13,7 @@ from tqdm import tqdm
 import numpy as np
 from glob import glob
 import random
+from pathlib import PurePath
 
 class ModelWrapper(nn.Module):
     """
@@ -52,9 +53,6 @@ class ModelWrapper(nn.Module):
 
     def __repr__(self) -> str:
         return(str(self.model))
-        
-    def _register_buffer(self, x):
-        self.model.register_buffer(x)
 
 class DictWrapper(ModelWrapper):
     def __init__(self, model, device) -> None:
@@ -290,8 +288,8 @@ class Trainer:
             self.test_loader = None
 
     def _wrap_model(self, data):
+        if not isinstance(self.model, ModelWrapper):
             sample = data[0]
-            print(type(sample))
             if isinstance(sample, dict):
                 self.model = DictWrapper(self.model, self.device)
             elif isinstance(sample, tuple):
@@ -445,7 +443,7 @@ class Trainer:
             
             self.logger.fprint(f'Best {self.monitor_metric}: {self.best_metric:.4f} at epoch {self.best_epoch}')  
                             
-            if not self.current_epoch % 100:
+            if (not self.current_epoch % 100) and self.current_epoch:
                 self.logger.fprint(f'[CHECKPOINT SAVED] epoch {self.current_epoch}.')
                 self._wrap_and_save(mode='checkpoint')        
                 
@@ -487,7 +485,19 @@ class Trainer:
         
         self.checkpoint_path = model_path[0]
         self._resume_from(self.checkpoint_path)    
-        self.predict(test_data)           
+        self.predict(test_data)     
+        
+    def resume(self, train_data, val_data=None):
+        # resuming training from the lastest checkpoint
+        self.logger.fprint('Resume training from the lastest checkpoint.')
+        model_path = glob(pth.join(self.model_folder, 'checkpoint*'))
+        
+        model_path = list(sorted(model_path, key=lambda x: int(PurePath(x).parts[-1].split('_')[1]), reverse=True))
+        
+        self.checkpoint_path = model_path[0]
+        self._resume_from(self.checkpoint_path) 
+        self.fit(train_data, val_data)   
+                        
         
 if __name__ == "__main__":
     # test trainer on the CIFAR10 dataset
@@ -497,7 +507,7 @@ if __name__ == "__main__":
     exp_name = "test_exp"
     config = {
         'batch_size': 128,
-        'epochs': 10,
+        'epochs': 2,
         'lr': 1e-2,
         'weight_decay': 5e-4,
         'warmup_steps': 0, # reduceonpleatau
@@ -529,8 +539,6 @@ if __name__ == "__main__":
     # train
     trainer = Trainer(exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', criterion=criterion)
     trainer.fit(trainset, valset)
-    
-    # validation
-    trainer = Trainer(exp_name, config, model, tensorboard_log=False, checkpoint_path=None, log_root='./logs', criterion=criterion)
     trainer.predict_on_best(valset)
+    # trainer.resume(trainset, valset)
     
