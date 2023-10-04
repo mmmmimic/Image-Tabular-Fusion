@@ -1,0 +1,53 @@
+train:
+  batch_size: 128
+  epochs: 1000
+  lr: 1e-4
+  weight_decay: 1e-5
+  warmup_steps: 1000 # 0 if activating reduceonplateau
+  optimizer_type: adamw # (sgd, adam, adamw)
+  resampling: False # True if sample number is considerably imbalanced among categories 
+  device: cuda # (cuda, cpu)
+  accum_step: 1 # >1 means gradient accumulation over iterations
+  mode: accum # (accum, avg), if the dataset is too large, set to avg to run AverageMeter over batches
+  metric_names: ['acc', 'avg_acc'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
+  criterion: # specify cost function
+    cse: 
+      weight: 1
+      config:
+
+  monitor_metric: acc
+  seed: 2023 # -1 for not fixing random seed
+   
+
+data:
+  dataset: dvm
+  numerical: True
+  cache_images: False 
+  tab_embedder:
+    name: onehot
+    config: 
+
+  transforms:
+      tabular:
+        name: scarf
+        config:
+          corrupt_rate: 0.7
+      image:
+        train_shape: [128, 128]
+        test_shape: [128, 128]
+        norm: False
+        aug_rate: 0.95
+        train_augs: """T.Compose([T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8],
+                            contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), 
+                            T.RandomGrayscale(p=0.2), T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5), 
+                            T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)),
+                            T.RandomHorizontalFlip(p=0.5)])"""
+        test_augs: ""
+
+model:
+  name: mlp
+  wrapper: dict # [dict, tuple, list], used for wrap the model
+  config:
+    hidden_channel: [2048, 2048]
+
+    
