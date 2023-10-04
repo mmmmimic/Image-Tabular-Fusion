@@ -1,55 +1,87 @@
 # train and test a model on a dataset
 import torch
-from torch.utils.data import DataLoader
-from data import DVM
+from data import get_dataset
 import argparse
 import torch.nn as nn
 import torchvision.transforms as T
-import json
+import yaml
 import os
 import model
-
-parser = argparse.ArgumentParser(
-    description='Multimodal segmentation'
-)
-
-parser.add_argument('--exp_name', type=str, metavar='-n', help="experiment name")
-parser.add_argument('--config', type=str, metavar='-c', help="configuration file path")
-parser.add_argument('--batch_size', type=int, default=16, metavar='-b')
-parser.add_argument('--lr', type=float, default=1e-4)
-parser.add_argument('--epoch', type=float, default=1000)
-parser.add_argument('--weight_decay', type=float, default=1e-4)
-parser.add_argument('--warmup', type=int, default=100)
-parser.add_argument('--resume', type=str, metavar='-r', help="resume the training from <checkpoint> path")
-parser.add_argument('--model', type=str, metavar='-m', help="model type from ['mlp']")
-parser.add_argument('--use_gpu', type=bool, default=True)
-parser.add_argument('--optimizer', type=str, default='sgd', help="optimizer from ['sgd', ]")
-parser.add_argument('--augmentation', type=str)
-parser.add_argument('--train', type=bool, default=False)
-parser.add_argument('--tensorboard_log', type=bool, default=True, help="whether activate tensorboard logging")
-
-
-args = parser.parse_args()
+from core import Trainer
+from loss import get_criterion
+from wrappers import wrapup_model
 
 def build_model(args):
     model_type = 0
-
-
         # backup configs
 
 def build_data(args):
     pass
-    
-model = None
-optimizer = None
-scheduler = None
 
-print(args)
+def read_configs(file_dir):
+    if not os.path.exists(file_dir):
+        raise 
 
+def build_trainer(args, configs):
+    pass
 
-def train_one_epoch():
-    "train the mdoel for one epoch"
+def backup():
+    pass
 
+def main(args, configs) -> int:
+    print(args)
+    print(configs)
+    return 0
 
 if __name__ == "__main__":
-    pass
+    parser = argparse.ArgumentParser(
+        description='Multimodal classification'
+    )
+
+    parser.add_argument('--exp_name', type=str, metavar='-n', help="experiment name")
+    parser.add_argument('--config', type=str, metavar='-c', help="configuration file path")
+    parser.add_argument('--resume', type=str, metavar='-r', help="resume the training from <checkpoint> path")
+    parser.add_argument('--train', type=bool, default=False, help="whether train the model")
+
+    args = parser.parse_args()
+    configs = read_configs(args.config)
+    
+    main(args, configs)
+    sys.exit()
+    
+    from data import DVM, OneHotEmbedder, Scarf
+    import torchvision.transforms as T
+    
+
+    model = nn.Sequential(
+                    nn.Linear(63, 2048),
+                    nn.ReLU(),
+                    nn.Linear(2048, 286) # 286 categories in total
+                        )
+    # model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet18', pretrained=True)
+    # model.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+    # model.fc = nn.Linear(in_features=512, out_features=10, bias=True)
+    
+    tab_transform = Scarf(corrupt_rate=0.7)
+    transforms = {
+        # 'tab_tf': tab_transform,
+        'tab_tf': lambda x, y: y,  
+        'img_tf': T.Compose(
+            [
+                T.ToTensor()
+            ]
+        )
+    }
+    trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
+    valset = DVM(split='val', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
+    testset = DVM(split='test', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
+    
+    # import torchvision
+    # trainset = torchvision.datasets.CIFAR10(root='.', train=True, transform=T.ToTensor(), download=False)
+    # valset = torchvision.datasets.CIFAR10(root='.', train=False, transform=T.ToTensor(), download=False)
+    
+    trainer = Trainer(exp_name, config, model, tensorboard_log=False, checkpoint_path='logs/test_exp/models/best_model_1695785721_9514947_epoch317.t7', log_root='./logs', wrapper='tabular')
+    # trainer.fit(trainset, valset)
+    trainer.predict(testset)
+    
+    print('-------------------------------------------')

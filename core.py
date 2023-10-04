@@ -1,4 +1,3 @@
-from typing import Any
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from utils import Logger
@@ -14,76 +13,8 @@ import numpy as np
 from glob import glob
 import random
 from pathlib import PurePath
+import wrappers
 
-class ModelWrapper(nn.Module):
-    """
-    The wrapper wraps an arbitary deep neural network to the format fitting the trainer
-    args:
-        model (torch.nn.Module)
-        device (torch.device)
-    """
-    def __init__(self, model, device) -> None:
-        super().__init__()
-        self.model = model
-        self.device = device
-        self.model.to(device)
-    
-    def forward(self, data) -> Any:
-        # input data can be a tensor, a list, or a dictionary
-        data = self._to_device(data)
-        outputs = self._forward(data)
-        return outputs
-        
-    def _forward(self, data):
-        return self.model(data)
-        
-    def _to_device(self, x):
-        if isinstance(x, torch.Tensor):
-            return x.to(self.device)
-        elif isinstance(x, dict):
-            for name in x.keys():
-                x[name] = x['name'].to(self.device)
-            return x
-        elif isinstance(x, list):
-            for i in range(len(x)):
-                x[i] = x[i].to(self.device)
-            return x
-        else:
-            raise TypeError
-
-    def __repr__(self) -> str:
-        return(str(self.model))
-
-class DictWrapper(ModelWrapper):
-    def __init__(self, model, device) -> None:
-        super().__init__(model, device)
-
-    def _forward(self, data):
-        # input data can be a tensor, a list, or a dictionary
-        data = self._to_device(data)
-        outputs = self._forward(data)
-        return outputs  
-    
-    def _forward(self, data):
-        # type check
-        assert isinstance(data, dict)
-        return self.model(**data)    
-
-class TupleWrapper(ModelWrapper):
-    def __init__(self, model, device) -> None:
-        super().__init__(model, device)
-    
-    def forward(self, data):
-        data = self._to_device(data)
-        logit = self._forward(data)
-        image, label = data
-        return {'image': image, 'label': label, 'logit': logit}
-    
-    def _forward(self, data):
-        # type check
-        assert isinstance(data, list) and (len(data)==2) # <image, label>
-        return self.model(data[0])  
-            
 class Trainer:
     """
     The trainer trains or validates an arbitrary model. 
@@ -288,15 +219,17 @@ class Trainer:
             self.test_loader = None
 
     def _wrap_model(self, data):
-        if not isinstance(self.model, ModelWrapper):
-            sample = data[0]
-            if isinstance(sample, dict):
-                self.model = DictWrapper(self.model, self.device)
-            elif isinstance(sample, tuple):
-                self.model = TupleWrapper(self.model, self.device)
-            else:
-                self.logger.fprint(f'Illegal input type {type(sample)}!')
-                raise TypeError        
+        '''
+        wrap model automatically 
+        '''
+        sample = data[0]
+        if isinstance(sample, dict):
+            self.model = wrappers.DictWrapper(self.model, self.device)
+        elif isinstance(sample, tuple):
+            self.model = wrappers.TupleWrapper(self.model, self.device)
+        else:
+            self.logger.fprint(f'Illegal input type {type(sample)}!')
+            raise TypeError        
 
     def _prepare_monitors(self):
         self.loss = AverageMeter() # display loss
@@ -409,7 +342,8 @@ class Trainer:
     
     def fit(self, train_data, val_data=None):
         self._build_data_loader(train_data, val_data)
-        self._wrap_model(train_data)
+        if not isinstance(self.model, wrappers.ModelWrapper):
+            self._wrap_model(train_data)
         
         for self.current_epoch in range(self.start_epoch, self.epochs):
             self._train_one_epoch()
@@ -455,7 +389,8 @@ class Trainer:
     def predict(self, test_data):
         self.logger.fprint('Start validation.')
         self._build_data_loader(None, test_data)
-        self._wrap_model(test_data)
+        if not isinstance(self.model, wrappers.ModelWrapper):
+            self._wrap_model(test_data)
         
         self.mode = 'accum' # for validation, mode must be 'accum'
         self._validate_one_epoch()
@@ -500,7 +435,7 @@ class Trainer:
                         
         
 if __name__ == "__main__":
-    # test trainer on the CIFAR10 dataset
+    # test the trainer on the CIFAR10 dataset
     import torchvision.transforms as T
     import torchvision
     
@@ -520,10 +455,12 @@ if __name__ == "__main__":
         'monitor_metric': 'acc',
         'seed': -1 # no fixed random seed
     }
+    
     model = torchvision.models.convnext_base(weights=torchvision.models.convnext.ConvNeXt_Base_Weights)
     model.classifier[2] = nn.Linear(in_features=1024, out_features=100, bias=True)
+    model = wrappers.wrapup_model(model, 'tuple', device='cuda')
     
-    trainset = torchvision.datasets.CIFAR100(root='./data', train=True, transform=T.Compose(
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True, transform=T.Compose(
         [
             T.RandomCrop((32, 32), padding=4),
             T.RandomHorizontalFlip(),
@@ -531,7 +468,7 @@ if __name__ == "__main__":
             T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
         ]
         ), download=True)
-    valset = torchvision.datasets.CIFAR100(root='./data', train=False, transform=T.Compose([T.ToTensor(), 
+    valset = torchvision.datasets.CIFAR10(root='./data', train=False, transform=T.Compose([T.ToTensor(), 
             T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]), download=True)
     
     criterion = {'cse': [1, nn.CrossEntropyLoss()]}
