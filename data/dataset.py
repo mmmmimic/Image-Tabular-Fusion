@@ -6,17 +6,61 @@ import json
 from PIL import Image
 from .tabular_utils import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask, TextEmbedder
 import os.path as pth
+import cv2
 
-class DVM(Dataset):
-    def __init__(self, split: str, transforms: dict, numerical: bool=False, tab_embedder: Any=DefaultEmbedder(), root_dir:str='data/dvm_car') -> None:
+class MyData(Dataset):
+    def __init__(self, split, transforms, root_dir, *args, **kwargs) -> None:
+        super().__init__()
+        self.split = split
+        self.transforms = transforms
+        self.root_dir = root_dir
+    
+    def __len__():
+        pass
+    
+    def __getitem__(self, index) -> Any:
+        return super().__getitem__(index)
+
+    def get_labels(self):
+        pass
+
+class TabularData(MyData):
+    def __init__(self, split, transforms, tab_embedder: DefaultEmbedder, root_dir:str='data/dvm_car', preload_images=False, *args, **kwargs) -> None:
         '''
         Args:
             split (str): data split, can be 'train', 'val', or 'test'
             transforms (dict): transforms on tabular data and image data, stored in a dictionary {'tab_tf': ..., 'img_tf': ...}
-            numerical (bool): whether use normalized and categorized numerical values for each cell
             tab_embedder (any): a generator encoding tabular values into embeddings 
         '''
-        super(DVM).__init__()
+        super().__init__(split, transforms, root_dir, *args, **kwargs)
+        self.tab_embedder = tab_embedder
+        self.preload_images = preload_images
+    
+    def _cache_images(self, paths):
+        images = []
+        for img_path in paths:
+            _img = cv2.imread(img_path)
+            if len(_img.shape) == 3:
+                # if rgb
+                _img = _img[...,[2,1,0]]
+            elif len(_img.shape) == 2:
+                # gray
+                _img = np.expand_dims(_img, axis=-1)
+            else:
+                raise Exception(f"Incorrect image dimension {_img.shape}.")
+            
+            images.append(_img)
+        images = np.concatenate(images, axis=-1)
+        self.images = images
+        
+class DVM(TabularData):
+    def __init__(self, split: str, transforms: dict, numerical: bool=False, 
+                 tab_embedder=DefaultEmbedder, 
+                 root_dir:str='data/dvm_car', preload_images=False, *args, **kwargs) -> None:
+        '''
+            numerical (bool): whether use normalized and categorized numerical values for each cell
+        '''
+        super().__init__(split, transforms, tab_embedder, root_dir, preload_images, *args, **kwargs)
         self.split = split
         # tabular data
         self.df = pd.read_csv(pth.join(root_dir, f'{split}_df_full.csv'))
@@ -36,7 +80,11 @@ class DVM(Dataset):
         
         self.tab_embedder = tab_embedder
         
-        self.image_paths = np.load(pth.join(root_dir, f'{split}_paths.npy'))
+        image_paths = np.load(pth.join(root_dir, f'{split}_paths.npy'))
+        if preload_images:
+            self.images = self._cache_images(image_paths)
+        else:
+            self.images = image_paths
         
     def __len__(self):
         return len(self.df)
@@ -49,7 +97,10 @@ class DVM(Dataset):
         tab_line = line['line_embd']
 
         # load image data
-        image = Image.open(self.image_paths[index])
+        if self.preload_images:
+            image = Image.fromarray(self.images[index])
+        else:
+            image = Image.open(self.images[index])
         image = img_tf(image)
         
         label = self.labels[index]

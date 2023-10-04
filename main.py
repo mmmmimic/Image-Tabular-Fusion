@@ -11,13 +11,6 @@ from core import Trainer
 from loss import get_criterion
 from wrappers import wrapup_model
 
-def build_model(args):
-    model_type = 0
-        # backup configs
-
-def build_data(args):
-    pass
-
 def read_configs(file_dir):
     if not os.path.exists(file_dir):
         raise 
