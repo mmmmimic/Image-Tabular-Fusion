@@ -1,5 +1,6 @@
 from registry import *
 import torchvision.transforms as T
+from core import Trainer
 
 def get_criterion(name, *args, **kwargs):
     return LOSS[name](*args, **kwargs)
@@ -13,7 +14,7 @@ def build_criterion(crtn_dict):
 def wrap_model(model, wrapper_type, device):
     return WRAPPER[wrapper_type](model, device)
 
-def build_models(model_name, model_config):
+def build_model(model_name, model_config):
     return MODEL[model_name](**model_config)
 
 def build_embedder(embedder_name, embedder_config):
@@ -61,7 +62,10 @@ def get_tabular_transform(augs: dict):
     '''
     name = augs['name']
     config = augs['config']
-    return TABULAR_TRANSFORM[name](**config)
+    if name == 'identity':
+        return lambda x, y: y
+    else:
+        return TABULAR_TRANSFORM[name](**config)
     
 def get_transform(transform_configs, split):
     tfs = {}
@@ -96,6 +100,10 @@ def build_dataset(name, config):
     testset = DATASET[name](split='test', **config)
     
     return trainset, valset, testset
+
+def build_trainer(exp_name, training_config, model, tensorboard_log, checkpoint_path, criterion):
+    trainer = Trainer(exp_name, training_config, model, tensorboard_log=tensorboard_log, checkpoint_path=checkpoint_path, criterion=criterion)
+    return trainer
 
 if __name__  == "__main__":
     import matplotlib.pyplot as plt

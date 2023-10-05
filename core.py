@@ -140,7 +140,7 @@ class Trainer:
             self.logger.fprint(f'{path} is not a file...')
             return False
         else:
-            self.logger.fprint(f'Resuming training from {path}.')
+            self.logger.fprint(f'Resuming status from {path}.')
             try:
                 self.checkpoint = torch.load(path, map_location=self.device)
                 for key in ['config', 'state_dict', 'criterion', 'global_step', 'current_epoch', 'optimizer_state', 'scheduler_state', 'best_epoch', 'best_metric']:
@@ -425,7 +425,7 @@ class Trainer:
         
     def resume(self, train_data, val_data=None):
         # resuming training from the lastest checkpoint
-        self.logger.fprint('Resume training from the lastest checkpoint.')
+        self.logger.fprint('Resume status from the lastest checkpoint.')
         model_path = glob(pth.join(self.model_folder, 'checkpoint*'))
         
         model_path = list(sorted(model_path, key=lambda x: int(PurePath(x).parts[-1].split('_')[1]), reverse=True))

@@ -30,7 +30,7 @@ class ModelWrapper(nn.Module):
         elif isinstance(x, dict):
             for name in x.keys():
                 if isinstance(x[name], torch.Tensor):
-                    x[name] = x['name'].to(self.device)
+                    x[name] = x[name].to(self.device)
             return x
         elif isinstance(x, list):
             for i in range(len(x)):
