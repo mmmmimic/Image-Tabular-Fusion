@@ -30,7 +30,7 @@ class ModelWrapper(nn.Module):
         elif isinstance(x, dict):
             for name in x.keys():
                 if isinstance(x[name], torch.Tensor):
-                    x[name] = x['name'].to(self.device)
+                    x[name] = x[name].to(self.device)
             return x
         elif isinstance(x, list):
             for i in range(len(x)):
@@ -72,14 +72,6 @@ class TupleWrapper(ModelWrapper):
         # type check
         assert isinstance(data, list) and (len(data)==2) # <image, label>
         return self.model(data[0])  
-            
-def wrapup_model(model, wrapper_type, device):
-    if wrapper_type == 'dict':
-        return DictWrapper(model, device)
-    elif wrapper_type == 'tuple' or wrapper_type == 'list':
-        return TupleWrapper(model, device)
-    else:
-        raise ValueError
             
 if __name__ == "__main__":
     net = nn.Sequential(

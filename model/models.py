@@ -13,7 +13,7 @@ class MLP(nn.Module):
         bn (bool): whether use batch normalization
         act_fn (nn.Module): activation function
     """
-    def __init__(self, in_channels, out_channels, hid_channels, bn=False, act_fn=nn.Identity()) -> None:
+    def __init__(self, in_channels, out_channels, hid_channels, bn=False, act_fn=nn.ReLU()) -> None:
         super().__init__()
         self.fc = nn.ModuleList()
         
@@ -29,9 +29,12 @@ class MLP(nn.Module):
         
         self.fc = nn.Sequential(*self.fc)
         
-    def forward(self, x):
-        x = self.fc(x)
-        return x
+    # def forward(self, x, *args, **kwargs):
+    #     x = self.fc(x)
+    #     return x
+    def forward(self, tab_line, *args, **kwargs):
+        x = self.fc(tab_line)
+        return {'logit': x, 'label': kwargs['label']}
 
 class MLP2D(nn.Module):
     """
@@ -43,7 +46,7 @@ class MLP2D(nn.Module):
         bn (bool): whether use batch normalization
         act_fn (nn.Module): activation function
     """
-    def __init__(self, in_channels, out_channels, hid_channels, bn=False, act_fn=nn.Identity()) -> None:
+    def __init__(self, in_channels, out_channels, hid_channels, bn=False, act_fn=nn.ReLU()) -> None:
         super().__init__()
         self.fc = nn.ModuleList()
         
@@ -59,7 +62,7 @@ class MLP2D(nn.Module):
         
         self.fc = nn.Sequential(*self.fc)
     
-    def forward(self, x):
+    def forward(self, x, *args, **kwargs):
         x = self.fc(x)
         return x
 
