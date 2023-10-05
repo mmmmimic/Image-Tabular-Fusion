@@ -73,6 +73,14 @@ class TupleWrapper(ModelWrapper):
         assert isinstance(data, list) and (len(data)==2) # <image, label>
         return self.model(data[0])  
             
+def wrapup_model(model, wrapper_type, device):
+    if wrapper_type == 'dict':
+        return DictWrapper(model, device)
+    elif wrapper_type == 'tuple' or wrapper_type == 'list':
+        return TupleWrapper(model, device)
+    else:
+        raise ValueError
+            
 if __name__ == "__main__":
     net = nn.Sequential(
         nn.Conv2d(3, 16, 3),

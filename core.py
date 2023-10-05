@@ -1,7 +1,7 @@
 import torch
 from torch.utils.tensorboard import SummaryWriter
 from utils import Logger
-from meters import MetricManager, AverageMeter
+from metrics import MetricManager, AverageMeter
 import os.path as pth
 import os
 from torch.utils.data import DataLoader
@@ -65,7 +65,7 @@ class Trainer:
         self.logger.fprint('----------------------------\n')
         
         self.batch_size = config['batch_size']
-        self.num_epochs = config['num_epochs']
+        self.epochs = config['epochs']
         self.lr = config['lr']
         self.weight_decay = config['weight_decay']
         self.warmup_steps = config['warmup_steps']
@@ -345,7 +345,7 @@ class Trainer:
         if not isinstance(self.model, wrappers.ModelWrapper):
             self._wrap_model(train_data)
         
-        for self.current_epoch in range(self.start_epoch, self.num_epochs):
+        for self.current_epoch in range(self.start_epoch, self.epochs):
             self._train_one_epoch()
             self._validate_one_epoch()
             
@@ -371,9 +371,8 @@ class Trainer:
                 self.best_epoch = self.current_epoch
                 self.logger.fprint(f'[MODEL SAVED] epoch {self.best_epoch}, with {self.monitor_metric} = {self.best_metric:.4f}.')
                 # remove the previous best model
-                best_model_paths = pth.join(self.exp_dir, 'models', 'best_model*')
-                if len(glob(best_model_paths)):
-                    os.system(f"rm {best_model_paths}")
+                if self.best_metric:
+                    os.system(f"rm {pth.join(self.exp_dir, 'models', 'best_model*')}")
                 self._wrap_and_save(mode='best_model')
             
             self.logger.fprint(f'Best {self.monitor_metric}: {self.best_metric:.4f} at epoch {self.best_epoch}')  
@@ -439,12 +438,11 @@ if __name__ == "__main__":
     # test the trainer on the CIFAR10 dataset
     import torchvision.transforms as T
     import torchvision
-    import builder
     
     exp_name = "test_exp"
     config = {
         'batch_size': 128,
-        'num_epochs': 2,
+        'epochs': 2,
         'lr': 1e-2,
         'weight_decay': 5e-4,
         'warmup_steps': 0, # reduceonpleatau
@@ -460,7 +458,7 @@ if __name__ == "__main__":
     
     model = torchvision.models.convnext_base(weights=torchvision.models.convnext.ConvNeXt_Base_Weights)
     model.classifier[2] = nn.Linear(in_features=1024, out_features=100, bias=True)
-    model = builder.wrap_model(model, 'tuple', device='cuda')
+    model = wrappers.wrapup_model(model, 'tuple', device='cuda')
     
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, transform=T.Compose(
         [
@@ -473,14 +471,7 @@ if __name__ == "__main__":
     valset = torchvision.datasets.CIFAR10(root='./data', train=False, transform=T.Compose([T.ToTensor(), 
             T.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))]), download=True)
     
-    crtn_dict = {
-        'cse':
-            {
-            'weight': 1,
-            'config': {}
-            }
-    }
-    criterion = builder.build_criterion(crtn_dict)
+    criterion = {'cse': [1, nn.CrossEntropyLoss()]}
     
     # train
     trainer = Trainer(exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', criterion=criterion)
