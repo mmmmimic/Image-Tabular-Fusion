@@ -1,6 +1,7 @@
 from registry import *
 import torchvision.transforms as T
 from core import Trainer
+from wrappers import ModelWrapper
 
 def get_criterion(name, *args, **kwargs):
     return LOSS[name](*args, **kwargs)
@@ -11,8 +12,8 @@ def build_criterion(crtn_dict):
         wrapped_dict[name+'_loss'] = (crtn_dict[name]['weight'], get_criterion(name=name, **crtn_dict[name]['config']))
     return wrapped_dict
 
-def wrap_model(model, wrapper_type, device):
-    return WRAPPER[wrapper_type](model, device)
+def wrap_model(model, wrapper_config, device):
+    return ModelWrapper(model, wrapper_config, device)
 
 def build_model(model_name, model_config):
     return MODEL[model_name](**model_config)
@@ -35,12 +36,16 @@ def get_image_transform(image_shape, aug_rate: float, augs: list, norm=False):
     
     if len(augs):
         transform = eval(augs)
-        combined_transform = T.RandomChoice([
-            img_resize, 
-            transform
-        ], p=[1-aug_rate, aug_rate])
+        if aug_rate:
+            combined_transform = T.RandomChoice([
+                img_resize, 
+                transform
+            ], p=[1-aug_rate, aug_rate])
+        else:
+            combined_transform = transform
     else:
         combined_transform = img_resize
+        
     combined_transform = T.Compose(
         [
             combined_transform, 

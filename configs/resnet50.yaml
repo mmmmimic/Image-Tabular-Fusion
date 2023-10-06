@@ -1,5 +1,5 @@
 train:
-  batch_size: 32
+  batch_size: 16
   num_epochs: 200
   lr: 0.0001
   weight_decay: 0.00001
@@ -23,47 +23,35 @@ data:
     numerical: True
     cache_images: False 
     tab_embedder:
-      name: onehot
+      name: default
       config: {} 
     transforms:
       tabular:
-        # name: scarf # [scarf, random_mask, identity]
-        # config:
-        #   corrupt_rate: 0.3
         name: identity
         config: {}
-      # image:
-      #   train_shape: [128, 128]
-      #   test_shape: [128, 128]
-      #   norm: False
-      #   aug_rate: 0.95
-      #   train_augs: "T.Compose([ \
-      #   T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8], contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), \ 
-      #   T.RandomGrayscale(p=0.2), \ 
-      #   T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5), \ 
-      #   T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
-      #   T.RandomHorizontalFlip(p=0.5) \
-      #   ])"
-      #   test_augs: ""
       image:
         train_shape: [128, 128]
         test_shape: [128, 128]
         norm: True
-        aug_rate: 0
-        train_augs: ""
+        aug_rate: 0.95
+        train_augs: "T.Compose([ \
+        T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
+        T.RandomHorizontalFlip(p=0.5), \
+        T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8], contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), \ 
+        T.RandomGrayscale(p=0.2), \ 
+        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5) \ 
+        ])"
         test_augs: ""
 
 model:
-  name: mlp
+  name: resnet50
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: tensor # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
-    kwd: 'tab_line' # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
+    kwd: 'image' # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    in_channels: 63
-    out_channels: 286
-    hid_channels: [2048, 2048]
-    bn: False
+    num_classes: 286
+    weights: False
 
     
