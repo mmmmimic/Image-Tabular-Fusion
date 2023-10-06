@@ -49,7 +49,7 @@ def main(args, configs) -> int:
     model_config = configs['model']
     
     model = build_model(model_config['name'], model_config=model_config['config'])
-    model = wrap_model(model, wrapper_type=model_config['wrapper'], device=train_config['device'])
+    model = wrap_model(model, wrapper_config=model_config['wrapper'], device=train_config['device'])
     
     trainset, valset, testset = build_dataset(name=data_config['dataset'], config=data_config['config'])
     

@@ -1,6 +1,7 @@
 from registry import *
 import torchvision.transforms as T
 from core import Trainer
+from wrappers import ModelWrapper
 
 def get_criterion(name, *args, **kwargs):
     return LOSS[name](*args, **kwargs)
@@ -11,8 +12,8 @@ def build_criterion(crtn_dict):
         wrapped_dict[name+'_loss'] = (crtn_dict[name]['weight'], get_criterion(name=name, **crtn_dict[name]['config']))
     return wrapped_dict
 
-def wrap_model(model, wrapper_type, device):
-    return WRAPPER[wrapper_type](model, device)
+def wrap_model(model, wrapper_config, device):
+    return ModelWrapper(model, wrapper_config, device)
 
 def build_model(model_name, model_config):
     return MODEL[model_name](**model_config)
@@ -35,12 +36,16 @@ def get_image_transform(image_shape, aug_rate: float, augs: list, norm=False):
     
     if len(augs):
         transform = eval(augs)
-        combined_transform = T.RandomChoice([
-            img_resize, 
-            transform
-        ], p=[1-aug_rate, aug_rate])
+        if aug_rate:
+            combined_transform = T.RandomChoice([
+                img_resize, 
+                transform
+            ], p=[1-aug_rate, aug_rate])
+        else:
+            combined_transform = transform
     else:
         combined_transform = img_resize
+        
     combined_transform = T.Compose(
         [
             combined_transform, 
@@ -97,7 +102,7 @@ def build_dataset(name, config):
     trainset = DATASET[name](split='train', **config)
     config['transforms'] = test_transforms
     valset = DATASET[name](split='val', **config)
-    testset = DATASET[name](split='test', **config)
+    testset = DATASET[name](split='train', **config)
     
     return trainset, valset, testset
 
@@ -127,13 +132,15 @@ if __name__  == "__main__":
                     {
                         'train_shape': [128, 128],
                         'test_shape': [128, 128],
-                        'norm': False, 
+                        'norm': True, 
                         'aug_rate': 0.95,
-                        'train_augs': """T.Compose([T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8],
-                            contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), 
-                            T.RandomGrayscale(p=0.2), T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5), 
-                            T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)),
-                            T.RandomHorizontalFlip(p=0.5)])""",
+                        'train_augs': """T.Compose([ 
+        T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), 
+        T.RandomHorizontalFlip(p=0.5), 
+        T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8], contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), 
+        T.RandomGrayscale(p=0.2),  
+        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5)  
+        ])""",
                         'test_augs': ""
                     }
             }
@@ -142,6 +149,17 @@ if __name__  == "__main__":
     trainset, valset, testset = build_dataset(data_config['dataset'], data_config)
         
     data = trainset[0]
+    image = data['image']
+    tab_line = data['tab_line']
+    label = data['label']
+    print(tab_line, tab_line.shape, label, image.shape)
+    print(image.min(), image.max())
+    plt.figure()
+    plt.imshow(image.permute(1,2,0).numpy())
+    plt.show()
+    
+    
+    data = testset[0]
     image = data['image']
     tab_line = data['tab_line']
     label = data['label']

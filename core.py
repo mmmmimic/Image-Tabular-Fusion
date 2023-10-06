@@ -13,7 +13,6 @@ import numpy as np
 from glob import glob
 import random
 from pathlib import PurePath
-import wrappers
 
 class Trainer:
     """
@@ -54,7 +53,6 @@ class Trainer:
         
         # load checkpoint
         self.checkpoint_path = checkpoint_path
-        self._resume_from(checkpoint_path)   
         
     def _initiate_hyperparams(self):
         config = self.config
@@ -207,7 +205,7 @@ class Trainer:
         if train_data is not None:
             if self.resampling:
                 self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, sampler=ImbalancedDatasetSampler(train_data), 
-                                               num_workers=self.batch_size, **kwargs)
+                                               num_workers=8, **kwargs)
             else:
                 self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, shuffle=True, num_workers=8, **kwargs)
         else:
@@ -216,20 +214,7 @@ class Trainer:
         if val_data is not None:
             self.test_loader = DataLoader(dataset=val_data, batch_size=self.batch_size, shuffle=False, num_workers=8, **kwargs)
         else:
-            self.test_loader = None
-
-    def _wrap_model(self, data):
-        '''
-        wrap model automatically 
-        '''
-        sample = data[0]
-        if isinstance(sample, dict):
-            self.model = wrappers.DictWrapper(self.model, self.device)
-        elif isinstance(sample, tuple):
-            self.model = wrappers.TupleWrapper(self.model, self.device)
-        else:
-            self.logger.fprint(f'Illegal input type {type(sample)}!')
-            raise TypeError        
+            self.test_loader = None   
 
     def _prepare_monitors(self):
         self.loss = AverageMeter() # display loss
@@ -341,9 +326,8 @@ class Trainer:
         return loss_report
     
     def fit(self, train_data, val_data=None):
+        self._resume_from(self.checkpoint_path)   
         self._build_data_loader(train_data, val_data)
-        if not isinstance(self.model, wrappers.ModelWrapper):
-            self._wrap_model(train_data)
         
         for self.current_epoch in range(self.start_epoch, self.num_epochs):
             self._train_one_epoch()
@@ -388,10 +372,10 @@ class Trainer:
         self._wrap_and_save(mode='last_model')
     
     def predict(self, test_data):
+        self._resume_from(self.checkpoint_path)   
+        
         self.logger.fprint('Start validation.')
         self._build_data_loader(None, test_data)
-        if not isinstance(self.model, wrappers.ModelWrapper):
-            self._wrap_model(test_data)
         
         self.mode = 'accum' # for validation, mode must be 'accum'
         self._validate_one_epoch()
@@ -440,6 +424,7 @@ if __name__ == "__main__":
     import torchvision.transforms as T
     import torchvision
     import builder
+    from wrappers import ModelWrapper
     
     exp_name = "test_exp"
     config = {
@@ -460,7 +445,15 @@ if __name__ == "__main__":
     
     model = torchvision.models.convnext_base(weights=torchvision.models.convnext.ConvNeXt_Base_Weights)
     model.classifier[2] = nn.Linear(in_features=1024, out_features=100, bias=True)
-    model = builder.wrap_model(model, 'tuple', device='cuda')
+    
+    wrapper_config = {
+            'wrapper_input': 'tuple',
+            'model_input': 'tensor',
+            'model_output': 'tensor',
+            'kwd': None
+    }
+    
+    model = ModelWrapper(model, wrapper_config, device='cuda')
     
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, transform=T.Compose(
         [
