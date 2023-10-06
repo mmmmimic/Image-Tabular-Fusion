@@ -6,7 +6,8 @@ from data import *
 MODEL = {
     'mlp': MLP,
     'mlp2d': MLP2D,
-    'resnet50': resnet50
+    'resnet50': resnet50,
+    'vitb16': vit_b_16
 } 
 
 LOSS = {

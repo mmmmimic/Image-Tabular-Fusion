@@ -52,6 +52,6 @@ model:
     kwd: 'image' # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
     num_classes: 286
-    weights: False
+    pretrained: False
 
     

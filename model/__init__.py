@@ -1,2 +1,3 @@
-from .models import MLP, MLP2D
-
+from .mlps import *
+from .resnet import *
+from .vit import *

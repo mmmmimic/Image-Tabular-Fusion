@@ -29,7 +29,9 @@ class DefaultEmbedder:
           line_embd.append(df[c].values[index])
       line_embd = np.array(line_embd)
       line_embd = torch.tensor(line_embd)
-      return line_embd        
+      return {
+                'line_embd': line_embd
+                }       
     
 class OneHotEmbedder(DefaultEmbedder):
   def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:

@@ -53,7 +53,6 @@ class Trainer:
         
         # load checkpoint
         self.checkpoint_path = checkpoint_path
-        self._resume_from(checkpoint_path)   
         
     def _initiate_hyperparams(self):
         config = self.config
@@ -327,6 +326,7 @@ class Trainer:
         return loss_report
     
     def fit(self, train_data, val_data=None):
+        self._resume_from(self.checkpoint_path)   
         self._build_data_loader(train_data, val_data)
         
         for self.current_epoch in range(self.start_epoch, self.num_epochs):
@@ -372,6 +372,8 @@ class Trainer:
         self._wrap_and_save(mode='last_model')
     
     def predict(self, test_data):
+        self._resume_from(self.checkpoint_path)   
+        
         self.logger.fprint('Start validation.')
         self._build_data_loader(None, test_data)
         
