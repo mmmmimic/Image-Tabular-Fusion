@@ -5,6 +5,7 @@ import clip
 import torch
 import regex as re
 from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
+from transformers import RobertaTokenizer
 
 def onehot(tab_value: int, field_length: int) -> np.ndarray:
     # convert a number (category index) to its onehot embedding
@@ -30,7 +31,7 @@ class DefaultEmbedder:
       line_embd = np.array(line_embd)
       line_embd = torch.tensor(line_embd)
       return {
-                'line_embd': line_embd
+                'line_embd': line_embd.float()
                 }       
     
 class OneHotEmbedder(DefaultEmbedder):
@@ -53,7 +54,7 @@ class OneHotEmbedder(DefaultEmbedder):
         line_embd = np.array(line_embd)
         line_embd = torch.tensor(line_embd)
         return {
-                'line_embd': line_embd
+                'line_embd': line_embd.float()
                 }
 
 class TextEmbedder(DefaultEmbedder):
@@ -72,10 +73,11 @@ class TextEmbedder(DefaultEmbedder):
       if model == 'clip':
         self.tokenizer = clip.tokenize
       elif model == 'roberta':
-        raise NotImplementedError
+        self.tokenizer = RobertaTokenizer.from_pretrained('Roberta-base')
       else:
         raise NameError
       
+      self.model = model
       self.withhead = withhead
       self.word_limit = word_limit
           
@@ -96,21 +98,24 @@ class TextEmbedder(DefaultEmbedder):
           else:
             cell_sentence = ''
           cell_sentence = cell_sentence + str(df[c].values[index])
-          if len(_tokenizer.encode(cell_sentence)) >= self.word_limit:
-            # cutoff
-            cell_sentence = ' '.join(cell_sentence.split[' '][:self.word_limit])
+          
+          # if self.model == 'clip':
+          #   if len(_tokenizer.encode(cell_sentence)) >= self.word_limit:
+          #     # cutoff
+          #     cell_sentence = ' '.join(cell_sentence.split[' '][:self.word_limit])
           line_sentence.append(cell_sentence)
         
         if not self.cellwise:
           # combine cell contents into one sentence
           line_sentence = ', '.join(line_sentence)
-          while len(_tokenizer.encode(line_sentence)) >= self.word_limit:
-            short_sentence = line_sentence.split(', ')
-            drop_id = np.random.randint(0, len(short_sentence))
-            short_sentence.pop(drop_id)
-            line_sentence = ', '.join(short_sentence)
-          line_sentence = [line_sentence]   
-        line_embd = self.tokenizer(line_sentence)
+          # if self.model == 'clip':
+          #   while len(_tokenizer.encode(line_sentence)) >= self.word_limit:
+          #     short_sentence = line_sentence.split(', ')
+          #     drop_id = np.random.randint(0, len(short_sentence))
+          #     short_sentence.pop(drop_id)
+          #     line_sentence = ', '.join(short_sentence)
+          line_sentence = [line_sentence]
+        line_embd = self.tokenizer(line_sentence, truncate=True)
           
         return {
                 'line_embd': line_embd,

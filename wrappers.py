@@ -45,6 +45,8 @@ class ModelWrapper(nn.Module):
                 model_input = {}
                 model_input[self.kwd] = data[0]
                 model_input['label'] = data[1]
+            else:
+                model_input = data
         
         return model_input
     
