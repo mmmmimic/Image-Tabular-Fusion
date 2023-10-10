@@ -393,8 +393,7 @@ class Trainer:
         model_path = glob(pth.join(self.model_folder, 'best_model*'))
         assert len(model_path) == 1, f'pretrained weights in {model_path} is not unique.'
         
-        self.checkpoint_path = model_path[0]
-        self._resume_from(self.checkpoint_path)    
+        self.checkpoint_path = model_path[0]  
         self.predict(test_data)
     
     def predict_on_last(self, test_data):
@@ -403,8 +402,7 @@ class Trainer:
         model_path = glob(pth.join(self.model_folder, 'last_model*'))
         assert len(model_path) == 1, f'pretrained weights in {model_path} is not unique.'
         
-        self.checkpoint_path = model_path[0]
-        self._resume_from(self.checkpoint_path)    
+        self.checkpoint_path = model_path[0]   
         self.predict(test_data)     
         
     def resume(self, train_data, val_data=None):
@@ -415,7 +413,6 @@ class Trainer:
         model_path = list(sorted(model_path, key=lambda x: int(PurePath(x).parts[-1].split('_')[1]), reverse=True))
         
         self.checkpoint_path = model_path[0]
-        self._resume_from(self.checkpoint_path) 
         self.fit(train_data, val_data)   
                         
         

@@ -6,8 +6,10 @@ from data import *
 MODEL = {
     'mlp': MLP,
     'mlp2d': MLP2D,
+    'clipmlp': ClipMLP,
     'resnet50': resnet50,
-    'vitb16': vit_b_16
+    'vitb16': vit_b_16,
+    'mm_baseline': MultimodalBaseline
 } 
 
 LOSS = {

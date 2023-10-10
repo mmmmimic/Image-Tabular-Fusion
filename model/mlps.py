@@ -1,6 +1,7 @@
 import torch
 from .modules import DenseLayer, Conv1x1
 import torch.nn as nn
+import clip
 
 class MLP(nn.Module):
     """
@@ -31,6 +32,46 @@ class MLP(nn.Module):
     def forward(self, x):
         x = self.fc(x)
         return x
+    
+class ClipMLP(nn.Module):
+    """
+    multi-layer perceptron encoding with CLIP
+    args:
+        in_channels (int): number of input channels
+        out_channels (int): number of output channels
+        hid_channels (list): number of hidden channels
+        bn (bool): whether use batch normalization
+        act_fn (nn.Module): activation function
+    """
+    def __init__(self, out_channels, hid_channels, bn=False, act_fn=nn.ReLU()) -> None:
+        super().__init__()
+        
+        self.clip_encoder, _ = clip.load("RN50", device='cpu')
+        self.mlp = MLP(1024*17, out_channels, hid_channels, bn, act_fn)
+        
+    def forward(self, x):
+        # x [batch, num_cell, 77]
+        batch_size = x.size(0)
+        multi_cell = x.size(1) > 1
+        
+        if multi_cell:
+            num_cell = x.size(1)
+            x = x.flatten(0, 1)
+        else:
+            x = x.squeeze(1)
+            
+        with torch.no_grad():
+            x = self.clip_encoder.encode_text(x.long()) # [batch, num_cell, 1024]
+            
+        if multi_cell:
+            x = torch.reshape(x, (batch_size, num_cell, 1024))
+            # x = torch.mean(x, dim=1)
+            x = x.flatten(-2)
+        x = self.mlp(x)
+        return x
+    
+class RobertaMLP(nn.Module):
+    pass
 
 class MLP2D(nn.Module):
     """

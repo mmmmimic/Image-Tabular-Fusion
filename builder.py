@@ -102,7 +102,7 @@ def build_dataset(name, config):
     trainset = DATASET[name](split='train', **config)
     config['transforms'] = test_transforms
     valset = DATASET[name](split='val', **config)
-    testset = DATASET[name](split='train', **config)
+    testset = DATASET[name](split='test', **config)
     
     return trainset, valset, testset
 
