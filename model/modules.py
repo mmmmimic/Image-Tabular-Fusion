@@ -73,6 +73,12 @@ class DenseLayer(nn.Module):
         x = self.act_fn(x)
         return x
 
+class AttentivePooling(nn.Module):
+    '''
+    attentive pooling layer
+    '''
+    
+
 if __name__ == "__main__":
     x = torch.rand(3, 100)
     mlp = MLP(100, 3, [])

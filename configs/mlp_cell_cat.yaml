@@ -20,11 +20,11 @@ train:
 data:
   dataset: dvm
   config:
-    numerical: True
+    numerical: False
     cache_images: False 
     tab_embedder:
-      name: onehot
-      config: {} 
+      name: text
+      config: {cellwise: True, model: clip} 
     transforms:
       tabular:
         # name: scarf # [scarf, random_mask, identity]
@@ -54,16 +54,15 @@ data:
         test_augs: ""
 
 model:
-  name: mlp
+  name: clipmlp
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: tensor # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
     kwd: 'tab_line' # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    in_channels: 63 # 63
     out_channels: 286
-    hid_channels: [2048, 2048]
+    hid_channels: [1024]
     bn: False
 
     

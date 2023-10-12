@@ -1,6 +1,6 @@
 train:
   batch_size: 32
-  num_epochs: 200
+  num_epochs: 500
   lr: 0.0001
   weight_decay: 0.00001
   warmup_steps: 1000 # 0 if activating reduceonplateau
@@ -18,13 +18,8 @@ train:
   seed: 2023 # -1 for not fixing random seed
    
 data:
-  dataset: dvm
+  dataset: preload_dvm
   config:
-    numerical: True
-    cache_images: False 
-    tab_embedder:
-      name: onehot
-      config: {} 
     transforms:
       tabular:
         # name: scarf # [scarf, random_mask, identity]
@@ -32,19 +27,6 @@ data:
         #   corrupt_rate: 0.3
         name: identity
         config: {}
-      # image:
-      #   train_shape: [128, 128]
-      #   test_shape: [128, 128]
-      #   norm: False
-      #   aug_rate: 0.95
-      #   train_augs: "T.Compose([ \
-      #   T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8], contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), \ 
-      #   T.RandomGrayscale(p=0.2), \ 
-      #   T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5), \ 
-      #   T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
-      #   T.RandomHorizontalFlip(p=0.5) \
-      #   ])"
-      #   test_augs: ""
       image:
         train_shape: [128, 128]
         test_shape: [128, 128]
@@ -52,6 +34,8 @@ data:
         aug_rate: 0
         train_augs: ""
         test_augs: ""
+    modal: ['tab']
+    kwd: clip_tab
 
 model:
   name: mlp
@@ -61,9 +45,9 @@ model:
     model_output: tensor # (tensor) | (dict)
     kwd: 'tab_line' # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    in_channels: 63 # 63
+    in_channels: 1024 # 63
     out_channels: 286
-    hid_channels: [2048, 2048]
+    hid_channels: [1024]
     bn: False
 
     

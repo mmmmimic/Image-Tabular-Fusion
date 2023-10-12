@@ -32,7 +32,10 @@ class MLP(nn.Module):
     def forward(self, x):
         x = self.fc(x)
         return x
-    
+
+class AttentiveMLP(nn.Module):
+    pass
+
 class ClipMLP(nn.Module):
     """
     multi-layer perceptron encoding with CLIP

@@ -3,8 +3,6 @@ import pandas as pd
 import random
 import clip
 import torch
-import regex as re
-from clip.simple_tokenizer import SimpleTokenizer as _Tokenizer
 from transformers import RobertaTokenizer
 
 def onehot(tab_value: int, field_length: int) -> np.ndarray:
@@ -58,7 +56,7 @@ class OneHotEmbedder(DefaultEmbedder):
                 }
 
 class TextEmbedder(DefaultEmbedder):
-    def __init__(self, cellwise=True, model='clip', withhead=True, word_limit=77) -> None:
+    def __init__(self, cellwise=True, model='clip', withhead=True, shuffle=False) -> None:
       '''
       Encode tabular content into word embeddings with a pretrained LLM
       args:
@@ -79,7 +77,7 @@ class TextEmbedder(DefaultEmbedder):
       
       self.model = model
       self.withhead = withhead
-      self.word_limit = word_limit
+      self.shuffle = shuffle
           
     def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
         '''
@@ -89,7 +87,7 @@ class TextEmbedder(DefaultEmbedder):
             index: line index
         '''
         columns = filter(lambda x: meta_info[x]['type'] in ['continuous', 'categorical'], meta_info.keys())
-        _tokenizer = _Tokenizer()
+        line = {}
         
         line_sentence = []          
         for c in columns:
@@ -98,29 +96,51 @@ class TextEmbedder(DefaultEmbedder):
           else:
             cell_sentence = ''
           cell_sentence = cell_sentence + str(df[c].values[index])
-          
-          # if self.model == 'clip':
-          #   if len(_tokenizer.encode(cell_sentence)) >= self.word_limit:
-          #     # cutoff
-          #     cell_sentence = ' '.join(cell_sentence.split[' '][:self.word_limit])
           line_sentence.append(cell_sentence)
         
         if not self.cellwise:
           # combine cell contents into one sentence
+          if self.shuffle:
+            np.random.shuffle(line_sentence)
+  
           line_sentence = ', '.join(line_sentence)
-          # if self.model == 'clip':
-          #   while len(_tokenizer.encode(line_sentence)) >= self.word_limit:
-          #     short_sentence = line_sentence.split(', ')
-          #     drop_id = np.random.randint(0, len(short_sentence))
-          #     short_sentence.pop(drop_id)
-          #     line_sentence = ', '.join(short_sentence)
           line_sentence = [line_sentence]
-        line_embd = self.tokenizer(line_sentence, truncate=True)
+        
+        line['line_sentence'] = line_sentence
+        
+        if self.model == 'clip':
+          line_embd = self.tokenizer(line_sentence, truncate=True)
+          line['line_embd'] = line_embd
           
-        return {
-                'line_embd': line_embd,
-                'line_sentence': line_sentence
-                }
+        else:
+          line_embd = self.tokenizer(line_sentence[0], return_tensors='pt', padding=True)
+          # line_embd = self.tokenizer(line_sentence, padding=True)
+          input_ids = line_embd['input_ids']
+          attention_mask = line_embd['attention_mask']
+          # if len(input_ids) < 120:
+          #   gap = 120 - len(input_ids)
+          #   input_ids[0] = input_ids[0] + [0] * gap
+          #   attention_mask[0] = attention_mask[0] + [0] * gap   
+          # elif len(input_ids) > 120:
+          #   input_ids = input_ids[...,:120]
+          #   attention_mask = attention_mask[...,:120]
+                        
+          if input_ids.size(1) < 120:
+            gap = 120 - input_ids.size(1)
+            input_ids = torch.cat((input_ids, torch.zeros_like(input_ids)[...,:gap]), dim=1)
+            attention_mask = torch.cat((attention_mask, torch.zeros_like(attention_mask)[...,:gap]), dim=1)
+          elif input_ids.size(1) > 120:
+            input_ids = input_ids[...,:120]
+            attention_mask = attention_mask[...,:120]
+        
+          line_embd['input_ids'] = input_ids
+          line_embd['attention_mask'] = attention_mask
+          
+          # line_embd = (input_ids * attention_mask) / torch.sum(attention_mask)
+            
+          line['line_embd'] = line_embd
+
+        return line
    
 class Scarf:
     def __init__(self, corrupt_rate=0.7) -> None:
