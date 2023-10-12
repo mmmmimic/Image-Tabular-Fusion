@@ -61,9 +61,9 @@ model:
     model_output: tensor # (tensor) | (dict)
     kwd: 'tab_line' # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    in_channels: 63 # 63
+    in_channels: 63
     out_channels: 286
-    hid_channels: [2048, 2048]
+    hid_channels: [17408, 1024]
     bn: False
 
     

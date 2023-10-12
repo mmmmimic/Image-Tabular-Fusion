@@ -113,7 +113,7 @@ def get_paths(df):
         paths.append(path)
     return paths
 
-def add_jitter(x, jitter=25):
+def add_jitter(x, jitter=50):
     return x + random.randint(-jitter, jitter)
 
 def fill_from_other_entry(row):
