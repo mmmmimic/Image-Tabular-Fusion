@@ -20,7 +20,7 @@ train:
 data:
   dataset: dvm
   config:
-    numerical: True
+    numerical: False
     cache_images: False 
     tab_embedder:
       name: default
@@ -42,6 +42,7 @@ data:
         T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5) \ 
         ])"
         test_augs: ""
+    modal: ['img']
 
 model:
   name: resnet50

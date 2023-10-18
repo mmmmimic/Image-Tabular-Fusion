@@ -35,19 +35,18 @@ data:
         train_augs: ""
         test_augs: ""
     modal: ['tab']
-    kwd: clip_tab
+    kwd: clip_cell
 
 model:
-  name: mlp
+  name: clipmlp
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: tensor # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
     kwd: 'tab_line' # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    in_channels: 1024 # 63
     out_channels: 286
-    hid_channels: [2048, 2048]
+    hid_channels: [1024]
     bn: False
 
     

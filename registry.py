@@ -8,8 +8,13 @@ MODEL = {
     'mlp2d': MLP2D,
     'clipmlp': ClipMLP,
     'resnet50': resnet50,
+    'clip_resnet50': clip_resnet50,
     'vitb16': vit_b_16,
-    'mm_baseline': MultimodalBaseline
+    'mm': MultimodalModel,
+    'res_mm': ResMultimodalModel,
+    'mm_baseline': MultimodalBaseline,
+    'mm_sentence': MultimodalSentence,
+    'mm_cell': MultimodelCell
 } 
 
 LOSS = {
@@ -26,7 +31,9 @@ METRICS = {
 }
 
 DATASET = {
-    'dvm': DVM
+    'dvm': DVM,
+    'preload_dvm': DVMPre,
+    'preloadres_dvm': DVMPreRes
 }
 
 Embedder = {

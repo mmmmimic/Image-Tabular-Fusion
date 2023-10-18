@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 from torch.hub import load_state_dict_from_url
+import clip
 
 
 __all__ = [
@@ -21,6 +22,8 @@ __all__ = [
     "resnext101_32x8d",
     "wide_resnet50_2",
     "wide_resnet101_2",
+    "clip_resnet50",
+    "clip_resnet50_encoder"
 ]
 
 
@@ -427,7 +430,24 @@ def wide_resnet101_2(pretrained: bool = False, progress: bool = True, **kwargs: 
     kwargs["width_per_group"] = 64 * 2
     return _resnet("wide_resnet101_2", Bottleneck, [3, 4, 23, 3], pretrained, progress, **kwargs)
 
+
+def clip_resnet50_encoder():
+    model, _ = clip.load('RN50', device='cpu')
+    model = model.visual
+    return model    
+
+
+def clip_resnet50(num_classes):
+    model = clip_resnet50_encoder()
+    model = nn.Sequential(
+        model,
+        nn.Linear(1024, num_classes)
+    )    
+    return model
+
 if __name__ == "__main__":
-    model = resnet50(pretrained=True, progress=True, num_classes=20)
+    # model = resnet50(pretrained=True, progress=True, num_classes=20)
+    model = clip_resnet50(286)
+    print(model)
     sample = torch.rand(16, 3, 224, 224)
     print(model(sample).shape)

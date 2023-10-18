@@ -1,5 +1,5 @@
 import torch
-from .modules import DenseLayer, Conv1x1
+from .modules import DenseLayer, Conv1x1, AttentivePooling
 import torch.nn as nn
 import clip
 
@@ -33,12 +33,9 @@ class MLP(nn.Module):
         x = self.fc(x)
         return x
 
-class AttentiveMLP(nn.Module):
-    pass
-
 class ClipMLP(nn.Module):
     """
-    multi-layer perceptron encoding with CLIP
+    multi-layer perceptron encoding with CLIP (for ablation study)
     args:
         in_channels (int): number of input channels
         out_channels (int): number of output channels
@@ -49,32 +46,30 @@ class ClipMLP(nn.Module):
     def __init__(self, out_channels, hid_channels, bn=False, act_fn=nn.ReLU()) -> None:
         super().__init__()
         
-        self.clip_encoder, _ = clip.load("RN50", device='cpu')
+        # self.clip_encoder, _ = clip.load("RN50", device='cpu')
         self.mlp = MLP(1024*17, out_channels, hid_channels, bn, act_fn)
         
     def forward(self, x):
         # x [batch, num_cell, 77]
-        batch_size = x.size(0)
-        multi_cell = x.size(1) > 1
+        # batch_size = x.size(0)
+        # multi_cell = x.size(1) > 1
         
-        if multi_cell:
-            num_cell = x.size(1)
-            x = x.flatten(0, 1)
-        else:
-            x = x.squeeze(1)
+        # if multi_cell:
+        #     num_cell = x.size(1)
+        #     x = x.flatten(0, 1)
+        # else:
+        #     x = x.squeeze(1)
             
-        with torch.no_grad():
-            x = self.clip_encoder.encode_text(x.long()) # [batch, num_cell, 1024]
+        # with torch.no_grad():
+        #     x = self.clip_encoder.encode_text(x.long()) # [batch, num_cell, 1024]
             
-        if multi_cell:
-            x = torch.reshape(x, (batch_size, num_cell, 1024))
-            # x = torch.mean(x, dim=1)
-            x = x.flatten(-2)
+        # if multi_cell:
+        #     x = torch.reshape(x, (batch_size, num_cell, 1024))
+        #     # x = torch.mean(x, dim=1)
+        #     x = x.flatten(-2)
+        x = x.flatten(-2)
         x = self.mlp(x)
         return x
-    
-class RobertaMLP(nn.Module):
-    pass
 
 class MLP2D(nn.Module):
     """
