@@ -1,5 +1,5 @@
 import torch
-from .modules import DenseLayer, Conv1x1
+from .modules import DenseLayer, Conv1x1, AttentivePooling
 import torch.nn as nn
 import clip
 
@@ -33,12 +33,9 @@ class MLP(nn.Module):
         x = self.fc(x)
         return x
 
-class AttentiveMLP(nn.Module):
-    pass
-
 class ClipMLP(nn.Module):
     """
-    multi-layer perceptron encoding with CLIP
+    multi-layer perceptron encoding with CLIP (for ablation study)
     args:
         in_channels (int): number of input channels
         out_channels (int): number of output channels

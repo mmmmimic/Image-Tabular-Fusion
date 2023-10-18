@@ -426,7 +426,7 @@ if __name__ == "__main__":
     exp_name = "test_exp"
     config = {
         'batch_size': 128,
-        'num_epochs': 2,
+        'num_epochs': 100,
         'lr': 1e-2,
         'weight_decay': 5e-4,
         'warmup_steps': 0, # reduceonpleatau
@@ -440,8 +440,12 @@ if __name__ == "__main__":
         'seed': -1 # no fixed random seed
     }
     
-    model = torchvision.models.convnext_base(weights=torchvision.models.convnext.ConvNeXt_Base_Weights)
-    model.classifier[2] = nn.Linear(in_features=1024, out_features=100, bias=True)
+    # model = torchvision.models.convnext_base(weights=torchvision.models.convnext.ConvNeXt_Base_Weights)
+    # model.classifier[2] = nn.Linear(in_features=1024, out_features=10)
+    
+    # model = torchvision.models.resnet50(weights=torchvision.models.resnet.ResNet50_Weights)
+    model = torchvision.models.resnet50(weights=None)
+    model.fc = nn.Linear(in_features=model.fc.in_features, out_features=10)
     
     wrapper_config = {
             'wrapper_input': 'tuple',
@@ -476,5 +480,5 @@ if __name__ == "__main__":
     trainer = Trainer(exp_name, config, model, tensorboard_log=True, checkpoint_path=None, log_root='./logs', criterion=criterion)
     trainer.fit(trainset, valset)
     trainer.predict_on_best(valset)
-    # trainer.resume(trainset, valset)
+    trainer.resume(trainset, valset)
     

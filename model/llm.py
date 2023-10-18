@@ -5,6 +5,8 @@ from transformers import DistilBertModel, DistilBertConfig
 from transformers import AlbertModel, AlbertConfig
 from transformers import RobertaModel,RobertaConfig
 import clip
+import torch.nn as nn
+import torch
 
 def bert(pretrained=True):
     if pretrained:
@@ -23,11 +25,28 @@ def roberta(pretrained=True):
         return RobertaModel.from_pretrained("roberta-base")
     else:
         return RobertaModel(RobertaConfig)
+
+class ClipTransformer(nn.Module):
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        model, _ = clip.load("RN50", device='cpu')
+        self.transformer = model
     
-def clip_():
-    model, _ = clip.load("RN50", device='cpu')
-    return model.transformer
+    def forward(self, x):
+        if len(x.shape) == 3:
+            batch_size, cell_number, _ = x.shape
+            x = x.flatten(0, 1)
+            x = self.transformer(x)
+            if cell_number!= 1:
+                x = x.view(batch_size, cell_number, -1)
+        else:
+            x = self.transformer(x)
+        return x
+            
+
+def clip_bert():
+    return ClipTransformer()
 
 if __name__ == "__main__":
-    model = clip_()
+    model = clip_bert()
     print(model)
