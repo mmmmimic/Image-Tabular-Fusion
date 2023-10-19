@@ -233,7 +233,9 @@ class MultimodalModel(nn.Module):
         return x          
     
     def encode_tabline(self, tab_line):
-        x = self.tab_encoder(tab_line)
+        with torch.no_grad():
+            self.tab_encoder.eval()
+            x = self.tab_encoder(tab_line)
         return x
     
     def forward(self, tab_line, image, *args, **kwargs):
