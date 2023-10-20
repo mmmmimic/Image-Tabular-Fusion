@@ -77,13 +77,13 @@ class AttentivePooling(nn.Module):
     def __init__(self, hidden_dim):
         super(AttentivePooling, self).__init__()
         self.hidden_dim = hidden_dim
-        # self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=8)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=8)
         self.attention = nn.Linear(hidden_dim, 1, bias=False)
 
     def forward(self, x):
         # x.shape = batch_size, seq_len, hidden_dim
-        # x = self.encoder_layer(x) # feature interaction between different modalities
-        attention_weights = self.attention(x)  # batch_size, seq_len, 1
+        x = self.encoder_layer(x) # feature interaction between different modalities
+        attention_weights = self.attention(x)  # batch_size, seq_len, 
         attention_weights = torch.softmax(attention_weights, dim=1)
         output = attention_weights * x  # batch_size, seq_len, hidden_dim
         output = output.sum(dim=1)  # batch_size, hidden_dim

@@ -9,6 +9,7 @@ def onehot(tab_value: int, field_length: int) -> np.ndarray:
     # convert a number (category index) to its onehot embedding
     onehot_array = np.zeros(field_length, dtype=np.float32)
     onehot_array[tab_value] = 1
+    # onehot_array = torch.nn.functional.one_hot(torch.tensor(tab_value), num_classes=field_length).numpy() # very slow, discarded
     return onehot_array
 
 class DefaultEmbedder:
@@ -44,10 +45,10 @@ class OneHotEmbedder(DefaultEmbedder):
         line_embd = []
         for c in columns:
             if meta_info[c]['type'] == 'categorical':
-                line_embd.extend(onehot(int(df[c].values[index]), meta_info[c]['field_length']))
+              line_embd.extend(onehot(int(df[c].values[index]), meta_info[c]['field_length']))
             else:
-                # continuous values
-                line_embd.extend([df[c].values[index]])
+              # continuous values
+              line_embd.extend([df[c].values[index]])
 
         line_embd = np.array(line_embd)
         line_embd = torch.tensor(line_embd)

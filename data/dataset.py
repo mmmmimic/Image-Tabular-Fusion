@@ -127,7 +127,6 @@ class DVM(TabularData):
     def __repr__(self) -> str:
         return super().__repr__()
 
-
 class DVMPre(Dataset):
     def __init__(self, split: str, transforms: dict, kwd:str='',
                  root_dir:str='data/dvm_car', modal=['img', 'tab'], preload_images=False, *args, **kwargs) -> None:
@@ -189,8 +188,36 @@ class DVMPre(Dataset):
     
     def __repr__(self) -> str:
         return super().__repr__()
+
+class DVMPreRes(DVMPre):
+    def __init__(self, split: str, transforms: dict, kwd: str = '', root_dir: str = 'data/dvm_car', modal=['img', 'tab'], preload_images=False, *args, **kwargs) -> None:
+        super().__init__(split, transforms, kwd, root_dir, modal, preload_images, *args, **kwargs)
+        self.onehot = np.load(pth.join(root_dir, f"onehot_noaug_{split}.npy"))
     
-    
+    def __getitem__(self, index: int) -> dict:
+        
+        data = {}
+        
+        if 'tab' in self.modal:
+            # load tabular data
+            data['main_tabline'] = torch.tensor(self.tab_data[index, ...]).float()
+            data['res_tabline'] = torch.tensor(self.onehot[index, ...]).float()
+            
+        if 'img' in self.modal:
+            # load image data
+            img_tf = self.transforms['img_tf']
+            if self.preload_images:
+                image = Image.fromarray(self.images[index])
+            else:
+                image = Image.open(self.images[index])
+            image = img_tf(image).float()
+            data['image'] = image
+        
+        label = self.labels[index]
+        
+        data['label'] = label
+        
+        return data
     
 if __name__ == "__main__":
     import matplotlib.pyplot as plt

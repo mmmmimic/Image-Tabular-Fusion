@@ -177,7 +177,7 @@ class MultimodalModel(nn.Module):
         elif self.fusion == 'attn':
             self.fused_dim = self.feat_dim
             self.attentive_pool = AttentivePooling(self.feat_dim)
-            self.fuse = lambda x, y: self.attentive_pool(torch.cat((x.unsqueeze(1), y), dim=1))
+            self.fuse = lambda x, y: self.attentive_pool(torch.cat((x.view(x.size(0), -1, x.size(-1)), y.view(y.size(0), -1, y.size(-1))), dim=1))
         
         else:
             raise NotImplementedError      
@@ -233,7 +233,9 @@ class MultimodalModel(nn.Module):
         return x          
     
     def encode_tabline(self, tab_line):
-        x = self.tab_encoder(tab_line)
+        with torch.no_grad():
+            self.tab_encoder.eval()
+            x = self.tab_encoder(tab_line)
         return x
     
     def forward(self, tab_line, image, *args, **kwargs):
@@ -267,7 +269,7 @@ class ResMultimodalModel(MultimodalModel):
     
     def forward(self, main_tabline, res_tabline, image, *args, **kwargs):
         # tab_line should include [clip_embeddings, onehot_embeddings, continous_embeddings]
-        tab_feat = self.encode_tabline(main_tabline, res_tabline)
+        tab_feat = self.encode_tabline(main_tabline, res_tabline[:,:13])
         image_feat = self.encode_image(image)
         
         fused_feat = self.fuse(image_feat, tab_feat)
