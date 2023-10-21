@@ -111,7 +111,7 @@ class Trainer:
             torch.cuda.manual_seed_all(seed)
             np.random.seed(seed)
             random.seed(seed)
-            # torch.backends.cudnn.deterministic = True  # to accelerate    
+            # torch.backends.cudnn.deterministic = True  # commend to accelerate    
         else:
             self.logger.fprint(f'Random seed is not fixed.')
                        
@@ -205,14 +205,14 @@ class Trainer:
         if train_data is not None:
             if self.resampling:
                 self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, sampler=ImbalancedDatasetSampler(train_data), 
-                                               num_workers=8, **kwargs)
+                                               num_workers=6, **kwargs)
             else:
-                self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, shuffle=True, num_workers=8, **kwargs)
+                self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, shuffle=True, num_workers=6, **kwargs)
         else:
             self.train_loader = None
                 
         if val_data is not None:
-            self.test_loader = DataLoader(dataset=val_data, batch_size=self.batch_size, shuffle=False, num_workers=8, **kwargs)
+            self.test_loader = DataLoader(dataset=val_data, batch_size=self.batch_size, shuffle=False, num_workers=6, **kwargs)
         else:
             self.test_loader = None   
 
