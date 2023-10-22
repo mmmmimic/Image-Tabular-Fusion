@@ -36,11 +36,11 @@ class ClipTransformer(nn.Module):
         if len(x.shape) == 3:
             batch_size, cell_number, _ = x.shape
             x = x.flatten(0, 1)
-            x = self.transformer(x)
+            x = self.transformer.encode_text(x)
             if cell_number!= 1:
                 x = x.view(batch_size, cell_number, -1)
         else:
-            x = self.transformer(x)
+            x = self.transformer.encode_text(x)
         return x
             
 

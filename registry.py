@@ -11,10 +11,7 @@ MODEL = {
     'clip_resnet50': clip_resnet50,
     'vitb16': vit_b_16,
     'mm': MultimodalModel,
-    'res_mm': ResMultimodalModel,
-    'mm_baseline': MultimodalBaseline,
-    'mm_sentence': MultimodalSentence,
-    'mm_cell': MultimodelCell
+    'res_mm': ResMultimodalModel
 } 
 
 LOSS = {
