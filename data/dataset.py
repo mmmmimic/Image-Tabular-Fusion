@@ -222,29 +222,34 @@ class DVMPreRes(DVMPre):
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     import torchvision.transforms as T
-    from .tabular_utils import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask
+    from tabular_utils import OneHotEmbedder, DefaultEmbedder, Scarf, RandomMask, TextEmbedder
     
-    tab_transform = Scarf(corrupt_rate=0.7)
+    # tab_transform = Scarf(corrupt_rate=0.7)
     # tab_transform = RandomMask(corrupt_rate=0.7)
+    tab_transform = lambda x, y: y
     
     transforms = {
         'tab_tf': tab_transform, 
         'img_tf': T.Compose(
             [
+                T.ToTensor(),
+                T.RandomErasing(1),
+                T.ToPILImage(),
                 T.ToTensor()
             ]
         )
     }
     
     # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=DefaultEmbedder())
-    # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder())
-    trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
-    data = trainset[0]
-    image = data['image']
-    tab_line = data['tab_line']
-    label = data['label']
-    print(tab_line, tab_line.shape, label)
-    plt.figure()
-    plt.imshow(image.permute(1,2,0).numpy())
-    plt.show()
+    trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder())
+    # trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
+    for i in range(10):
+        data = trainset[0]
+        image = data['image']
+        tab_line = data['tab_line']
+        label = data['label']
+        print(tab_line, tab_line.shape, label)
+        plt.figure()
+        plt.imshow(image.permute(1,2,0).numpy())
+        plt.show()
     

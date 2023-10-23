@@ -57,7 +57,7 @@ class OneHotEmbedder(DefaultEmbedder):
                 }
 
 class TextEmbedder(DefaultEmbedder):
-    def __init__(self, cellwise=True, model='clip', withhead=True, shuffle=False) -> None:
+    def __init__(self, cellwise=True, model='clip', withhead=True, shuffle=False, mask_rate=0) -> None:
       '''
       Encode tabular content into word embeddings with a pretrained LLM
       args:
@@ -79,6 +79,7 @@ class TextEmbedder(DefaultEmbedder):
       self.model = model
       self.withhead = withhead
       self.shuffle = shuffle
+      self.mask_rate = mask_rate
           
     def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
         '''
@@ -96,7 +97,14 @@ class TextEmbedder(DefaultEmbedder):
             cell_sentence = f"{meta_info[c]['full_name']}: "
           else:
             cell_sentence = ''
-          cell_sentence = cell_sentence + str(df[c].values[index])
+          if not self.mask_rate:
+            cell_sentence = cell_sentence + str(df[c].values[index])
+          else:
+            if np.random.rand() < self.mask_rate:
+              cell_sentence = cell_sentence + 'missing'
+            else:
+              cell_sentence = cell_sentence + str(df[c].values[index])
+              
           line_sentence.append(cell_sentence)
         
         if not self.cellwise:
@@ -204,6 +212,6 @@ class RandomMask:
       indices = random.sample(list(range(len(subject))), int(len(subject)*self.c)) 
       
       for i in indices:
-        subject[i] = '<mask>'
+        subject[i] = 'missing'
         
       return subject
