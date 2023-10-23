@@ -49,16 +49,19 @@ data:
     kwd: clip_tab
 
 model:
-  name: mm_sentence
+  name: mm
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: dict # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
+    tab_emb_dim: 1024
     num_classes: 286
-    emb_dim: 1024
+    feat_dim: 1024
     fusion: cat
+    image_encoder: rn50_clip
+    tab_encoder: identical
 
 
     
