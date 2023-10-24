@@ -57,7 +57,7 @@ class OneHotEmbedder(DefaultEmbedder):
                 }
 
 class TextEmbedder(DefaultEmbedder):
-    def __init__(self, cellwise=True, model='clip', withhead=True, shuffle=False, mask_rate=0) -> None:
+    def __init__(self, cellwise=True, model='clip', context=None, shuffle=False, mask_rate=0, chatgpt_tmpl=None) -> None:
       '''
       Encode tabular content into word embeddings with a pretrained LLM
       args:
@@ -77,9 +77,15 @@ class TextEmbedder(DefaultEmbedder):
         raise NameError
       
       self.model = model
-      self.withhead = withhead
+      self.context = context
       self.shuffle = shuffle
       self.mask_rate = mask_rate
+      if chatgpt_tmpl is not None:
+        with open(chatgpt_tmpl, 'r') as f:
+          content = f.read()
+        self.chatgpt_tmpl = content
+      else:
+        self.chatgpt_tmpl = None
           
     def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
         '''
@@ -91,48 +97,51 @@ class TextEmbedder(DefaultEmbedder):
         columns = filter(lambda x: meta_info[x]['type'] in ['continuous', 'categorical'], meta_info.keys())
         line = {}
         
-        line_sentence = []          
-        for c in columns:
-          if self.withhead:
-            cell_sentence = f"{meta_info[c]['full_name']}: "
-          else:
-            cell_sentence = ''
-          if not self.mask_rate:
-            cell_sentence = cell_sentence + str(df[c].values[index])
-          else:
-            if np.random.rand() < self.mask_rate:
-              cell_sentence = cell_sentence + 'missing'
+        if self.chatgpt_tmpl != None:
+          sentence = self.chatgpt_tmpl
+          # use chatgpt tmpl:
+          for c in columns:
+            t = '<' + meta_info[c]['full_name'] + '>'
+            sentence = sentence.replace(t, str(df[c].values[index]))
+            line_sentence = sentence.split('\n')
+
+        else:   
+          line_sentence = []          
+          for c in columns:
+            if self.context is None:
+              cell_sentence = f"{meta_info[c]['full_name']}: "
             else:
-              cell_sentence = cell_sentence + str(df[c].values[index])
+              cell_sentence = f"The {meta_info[c]['full_name']} of the {self.context} is "
               
-          line_sentence.append(cell_sentence)
-        
-        if not self.cellwise:
-          # combine cell contents into one sentence
-          if self.shuffle:
-            np.random.shuffle(line_sentence)
-  
-          line_sentence = ', '.join(line_sentence)
-          line_sentence = [line_sentence]
-        
+            if not self.mask_rate:
+              cell_sentence = cell_sentence + str(df[c].values[index])
+            else:
+              if np.random.rand() < self.mask_rate:
+                cell_sentence = cell_sentence + 'missing'
+              else:
+                cell_sentence = cell_sentence + str(df[c].values[index])
+                
+            line_sentence.append(cell_sentence)
+          if not self.cellwise:
+            # combine cell contents into one sentence
+            if self.shuffle:
+              np.random.shuffle(line_sentence)
+      
+            line_sentence = ', '.join(line_sentence)
+            line_sentence = [line_sentence]
+
         line['line_sentence'] = line_sentence
-        
+        # generate text embedding
         if self.model == 'clip':
+          # clip
           line_embd = self.tokenizer(line_sentence, truncate=True)
           line['line_embd'] = line_embd
           
         else:
+          # roberta
           line_embd = self.tokenizer(line_sentence[0], return_tensors='pt', padding=True)
-          # line_embd = self.tokenizer(line_sentence, padding=True)
           input_ids = line_embd['input_ids']
           attention_mask = line_embd['attention_mask']
-          # if len(input_ids) < 120:
-          #   gap = 120 - len(input_ids)
-          #   input_ids[0] = input_ids[0] + [0] * gap
-          #   attention_mask[0] = attention_mask[0] + [0] * gap   
-          # elif len(input_ids) > 120:
-          #   input_ids = input_ids[...,:120]
-          #   attention_mask = attention_mask[...,:120]
                         
           if input_ids.size(1) < 120:
             gap = 120 - input_ids.size(1)
@@ -144,8 +153,6 @@ class TextEmbedder(DefaultEmbedder):
         
           line_embd['input_ids'] = input_ids
           line_embd['attention_mask'] = attention_mask
-          
-          # line_embd = (input_ids * attention_mask) / torch.sum(attention_mask)
             
           line['line_embd'] = line_embd
 
@@ -215,3 +222,26 @@ class RandomMask:
         subject[i] = 'missing'
         
       return subject
+    
+class COVIDARMapping:
+    '''
+    Map field values to template style
+    '''
+    mapping_dict = {
+      'EXTENSIVE BURNS': {'yes': 'does', 'no': 'does not'},
+      'MALNUTRITION': {'yes': 'has', 'no': 'does not have'},
+      'CURRENT PREGNANT': {'yes': 'is', 'no': 'is not'},
+      'CHRONIC KIDNEY DISEASE': {'yes':'is diagnosed', 'no':'is not diagnosed'},
+      'DIABETES TYPE I': {'yes': 'has', 'no': 'does not have'},
+      'DIABETES TYPE II': {'yes': 'has', 'no': 'does not have'},   
+      'TRANSPLANT': {'yes': 'has', 'no': 'does not'},
+      'HEMODIALYSIS Pre Diagnosis': {'yes': 'has', 'no': 'does not have'},
+      'CANCER': {'yes': 'has been', 'no': 'is not'},            
+    }
+    
+    def __call__(self, index, tab_data: pd.DataFrame):
+      # output should be another pandas dataframe
+      tab_data_ = tab_data.copy()
+      for c in self.mapping_dict.keys():
+        tab_data_[c] = tab_data_[c].apply(lambda x: self.mapping_dict[c][x])
+      return tab_data_
