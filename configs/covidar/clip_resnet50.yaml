@@ -1,6 +1,6 @@
 train:
   batch_size: 32
-  num_epochs: 100
+  num_epochs: 50
   lr: 0.000001
   weight_decay: 0.0001
   warmup_steps: 100 # 0 if activating reduceonplateau
@@ -14,7 +14,7 @@ train:
     cse: 
       weight: 1
       config: {}
-  monitor_metric: auc
+  monitor_metric: acc
   seed: 2023 # -1 for not fixing random seed
    
 data:

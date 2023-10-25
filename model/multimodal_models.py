@@ -7,6 +7,7 @@ from .residual_modules import ResidualConnection
 from .modules import AttentivePooling
 from .llm import clip_bert
 from .resnet import clip_resnet50_encoder  
+from .vit import clip_vit_b_32_encoder
 
 class MultimodalModel(nn.Module):
     def __init__(self, tab_emb_dim, num_classes, feat_dim = 1024, fusion='cat', image_encoder='rn50', tab_encoder='mlp', frozen_tab=True, *args, **kwargs) -> None:
@@ -60,6 +61,10 @@ class MultimodalModel(nn.Module):
             model_ = clip_resnet50_encoder()
             model = ResidualConnection(model_, model_, channel=1024, dim=0) # deepcopy is integrated inside the module
             assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
+        elif encoder_name == 'vitb32_clip_res':
+            model = clip_vit_b_32_encoder()
+            model = ResidualConnection(model_, model_, channel=768, dim=0) # deepcopy is integrated inside the module
+            assert self.feat_dim == 768,f'embedding dimension {self.feat_dim} is illegal'            
         else:
             raise ValueError        
         

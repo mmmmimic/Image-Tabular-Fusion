@@ -18,13 +18,8 @@ train:
   seed: 2023 # -1 for not fixing random seed
    
 data:
-  dataset: covidar
+  dataset: preload_covidar
   config:
-    numerical: True
-    preload_images: False 
-    tab_embedder:
-      name: onehot
-      config: {} 
     transforms:
       tabular:
         name: identity
@@ -43,6 +38,7 @@ data:
         ])"
         test_augs: ""
     modal: ['img', 'tab']
+    kwd: clip_gpt
 
 model:
   name: mm
@@ -52,12 +48,12 @@ model:
     model_output: tensor # (tensor) | (dict)
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    tab_emb_dim: 33
+    tab_emb_dim: 1024
     num_classes: 2
     feat_dim: 1024
-    fusion: cat
-    image_encoder: rn50_clip
-    tab_encoder: mlp
+    fusion: attn
+    image_encoder: rn50_clip_res
+    tab_encoder: identical
 
 
     

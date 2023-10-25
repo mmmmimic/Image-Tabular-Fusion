@@ -14,6 +14,7 @@ from itertools import repeat
 import warnings
 from types import FunctionType
 import torchvision
+import clip
 
 __all__ = [
     "VisionTransformer",
@@ -587,6 +588,19 @@ def vit_h_14(pretrained=True, progress=True, num_classes=1000, **kwargs):
         model.heads.head = nn.Linear(model.heads.head.in_features, num_classes)
     return model
 
+
+def clip_vit_b_32_encoder():
+    model, _ = clip.load('VIT-B/32', device='cpu')
+    model = model.visual
+    return model    
+
+def clip_vit_b_32(num_classes):
+    model = clip_vit_b_32_encoder()
+    model = nn.Sequential(
+        model,
+        nn.Linear(768, num_classes)
+    )    
+    return model
 
 if __name__ == "__main__":
     model = vit_b_16(pretrained=True, num_classes=50)

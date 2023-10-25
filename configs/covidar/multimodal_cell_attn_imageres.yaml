@@ -1,11 +1,11 @@
 train:
   batch_size: 32
-  num_epochs: 100
-  lr: 0.0001
+  num_epochs: 50
+  lr: 0.000001
   weight_decay: 0.0001
-  warmup_steps: 0 # 0 if activating reduceonplateau
+  warmup_steps: 100 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
-  resampling: True # True if sample number is considerably imbalanced among categories 
+  resampling: False # True if sample number is considerably imbalanced among categories 
   device: cuda # (cuda, cpu)
   accum_step: 1 # >1 means gradient accumulation over iterations
   mode: accum # (accum, avg), if the dataset is too large, set to avg to run AverageMeter over batches
@@ -14,8 +14,8 @@ train:
     cse: 
       weight: 1
       config: {}
-  monitor_metric: auc
-  seed: 2023 # -1 for not fixing random seede
+  monitor_metric: acc
+  seed: 2023 # -1 for not fixing random seed
    
 data:
   dataset: preload_covidar
