@@ -30,7 +30,11 @@ METRICS = {
 DATASET = {
     'dvm': DVM,
     'preload_dvm': DVMPre,
-    'preloadres_dvm': DVMPreRes
+    'preloadres_dvm': DVMPreRes,
+    'covidar': COVID19AR,
+    'preload_covidar': COVID19ARPre,
+    'mug': MUG, 
+    'preload_mug': MUGPre
 }
 
 Embedder = {
@@ -41,5 +45,6 @@ Embedder = {
 
 TABULAR_TRANSFORM = {
     'scarf': Scarf,
-    'random_mask': RandomMask
+    'random_mask': RandomMask,
+    'covidar_mapping': COVIDARMapping
 }

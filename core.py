@@ -453,8 +453,9 @@ if __name__ == "__main__":
             'model_output': 'tensor',
             'kwd': None
     }
-    
-    model = ModelWrapper(model, wrapper_config, device='cuda')
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f'running on {device}.')
+    model = ModelWrapper(model, wrapper_config, device=device)
     
     trainset = torchvision.datasets.CIFAR10(root='./data', train=True, transform=T.Compose(
         [
