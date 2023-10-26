@@ -29,6 +29,7 @@ def get_image_transform(image_shape, aug_rate: float, augs: list, norm=False):
             [
                 T.ToTensor(),
                 T.Normalize(mean=(0.48145466, 0.4578275, 0.40821073), std=(0.26862954, 0.26130258, 0.27577711))
+                # T.Normalize(0.58627, 0.2795) # medclip mean and std
             ]
         )
     else:

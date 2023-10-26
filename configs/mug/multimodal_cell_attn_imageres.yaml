@@ -1,5 +1,5 @@
 train:
-  batch_size: 32
+  batch_size: 64
   num_epochs: 100
   lr: 0.0001
   weight_decay: 0.0001
@@ -30,13 +30,17 @@ data:
         norm: True
         aug_rate: 1
         train_augs: "T.Compose([ \
+        T.Resize((256, 256)), \
         T.RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
         T.RandomHorizontalFlip(p=0.5), \
         T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8], contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), \ 
         T.RandomGrayscale(p=0.2), \ 
         T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5) \ 
         ])"
-        test_augs: ""
+        test_augs: "T.Compose([ \
+        T.Resize((256, 256)), \
+        T.CenterCrop((224, 224)) \
+        ])"
     modal: ['tab', 'img']
     kwd: clip_context
 

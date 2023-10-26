@@ -9,6 +9,7 @@ import torch.nn as nn
 from torch import Tensor
 from torch.hub import load_state_dict_from_url
 import clip
+from medclip import MedCLIPModel, MedCLIPVisionModel
 
 
 __all__ = [
@@ -444,6 +445,12 @@ def clip_resnet50(num_classes):
         nn.Linear(1024, num_classes)
     )    
     return model
+
+def medclip_resnet50_encoder():
+    model = MedCLIPModel(vision_cls = MedCLIPVisionModel)
+    model.from_pretrained()
+    model = model.vision_model
+    return model   
 
 if __name__ == "__main__":
     # model = resnet50(pretrained=True, progress=True, num_classes=20)
