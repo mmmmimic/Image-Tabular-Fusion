@@ -3,7 +3,7 @@ import pandas as pd
 import random
 import clip
 import torch
-from transformers import RobertaTokenizer
+from transformers import RobertaTokenizer, AutoTokenizer
 
 def onehot(tab_value: int, field_length: int) -> np.ndarray:
     # convert a number (category index) to its onehot embedding
@@ -73,6 +73,8 @@ class TextEmbedder(DefaultEmbedder):
         self.tokenizer = clip.tokenize
       elif model == 'roberta':
         self.tokenizer = RobertaTokenizer.from_pretrained('Roberta-base')
+      elif model == 'medclip':
+        self.tokenizer = AutoTokenizer.from_pretrained('emilyalsentzer/Bio_ClinicalBERT')
       else:
         raise NameError
       
@@ -138,19 +140,22 @@ class TextEmbedder(DefaultEmbedder):
           line['line_embd'] = line_embd
           
         else:
-          # roberta
-          line_embd = self.tokenizer(line_sentence[0], return_tensors='pt', padding=True)
+          # roberta or medclip
+          line_embd = self.tokenizer(line_sentence, return_tensors='pt', padding=True) if self.model=='medclip' else self.tokenizer(line_sentence[0], return_tensors='pt', padding=True)
           input_ids = line_embd['input_ids']
           attention_mask = line_embd['attention_mask']
-                        
-          if input_ids.size(1) < 120:
-            gap = 120 - input_ids.size(1)
-            input_ids = torch.cat((input_ids, torch.zeros_like(input_ids)[...,:gap]), dim=1)
-            attention_mask = torch.cat((attention_mask, torch.zeros_like(attention_mask)[...,:gap]), dim=1)
-          elif input_ids.size(1) > 120:
-            input_ids = input_ids[...,:120]
-            attention_mask = attention_mask[...,:120]
-        
+          
+          max_length = 120 if self.model == 'roberta' else 77
+          
+                     
+          if input_ids.size(1) < max_length:
+            gap = max_length - input_ids.size(1)
+            input_ids = torch.cat((input_ids, torch.zeros((input_ids.size(0), gap), dtype=input_ids.dtype)), dim=1)
+            attention_mask = torch.cat((attention_mask, torch.zeros((input_ids.size(0), gap), dtype=attention_mask.dtype)), dim=1)
+          elif input_ids.size(1) > max_length:
+            input_ids = input_ids[...,:max_length]
+            attention_mask = attention_mask[...,:max_length]
+            
           line_embd['input_ids'] = input_ids
           line_embd['attention_mask'] = attention_mask
             

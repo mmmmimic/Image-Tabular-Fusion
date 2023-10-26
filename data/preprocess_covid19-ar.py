@@ -117,46 +117,12 @@ def add_jitter_float(x, jitter=10):
     
 # wrapup all information in a table
 def wrapup(table_df, png_dirs):
-    # fix random seed
-    seed = 2023
-    np.random.seed(seed)
-    random.seed(seed)
-
-    subject_id = table_df['PATIENT_ID'].values
-    # train_val_test split
-    train_ratio = 0.6
-    val_ratio = 0.2 # test ratio = 0.2
-    indices = list(range(len(subject_id)))
-    np.random.shuffle(indices)
-    train_inds = indices[:int(train_ratio*len(subject_id))]
-    val_inds = indices[int(train_ratio*len(subject_id)):int((train_ratio + val_ratio)*len(subject_id))]
-    test_inds = indices[int((train_ratio + val_ratio)*len(subject_id)):]
-    
-    def split(x):
-        if x in subject_id[train_inds]:
-            return 'train'
-        elif x in subject_id[val_inds]:
-            return 'val'
-        elif x in subject_id[test_inds]:
-            return 'test'
-        
-    split_dict = dict(zip(subject_id, list(map(split, subject_id))))
-    
-    try:
-        cnter = Counter(table_df['ICU Admit'].values[train_inds])
-        assert cnter['yes'] > 1
-        cnter = Counter(table_df['ICU Admit'].values[val_inds])
-        assert cnter['yes'] > 1
-        cnter = Counter(table_df['ICU Admit'].values[test_inds])
-        assert cnter['yes'] > 1
-    except AssertionError:
-        print('Try some other random seeds.')    
+    subject_id = table_df['PATIENT_ID'].values 
 
     png_dirs = list(filter(lambda x: PurePath(x).parts[-4] in subject_id, png_dirs))
     labels = []
     image_ids = []
     subject_ids = []
-    splits = []
     value_dict = {}
     
     for c in CATEGORICAL_IDS + CONTINOUS_IDS:
@@ -169,9 +135,6 @@ def wrapup(table_df, png_dirs):
         subject_id_ = PurePath(png).parts[-4] 
         subject_ids.append(subject_id_)
         
-        split_ = split_dict[subject_id_]
-        splits.append(split_)
-        
         label = table_df[table_df['PATIENT_ID']==subject_id_]['ICU Admit'].values[0]
         label = 1 if label == 'yes' else 0
         labels.append(label)
@@ -180,7 +143,6 @@ def wrapup(table_df, png_dirs):
             value_dict[c].append(table_df[table_df['PATIENT_ID']==subject_id_][c].values[0])
         
     value_dict['SUBJECT ID'] = subject_ids
-    value_dict['SPLIT'] = splits
     value_dict['LABEL'] = labels
     value_dict['IMAGE ID'] = image_ids
     value_dict['IMAGE DIRS'] = png_dirs
@@ -215,6 +177,8 @@ def postprocess():
     df['LATEST HEIGHT'] = df['LATEST HEIGHT'].apply(add_jitter_float, args=(3,))
     df['LATEST_BMI'] = (df['LATEST WEIGHT'].values*0.453592) / ((df['LATEST HEIGHT'].values/100)**2)
     df['LATEST_BMI'] = df['LATEST_BMI'].round(2)
+    df['LATEST HEIGHT'] = df['LATEST HEIGHT'].round(2)
+    df['LATEST WEIGHT'] = df['LATEST WEIGHT'].round(2)
         
     # normalize
     for c in CONTINOUS_IDS:
@@ -225,6 +189,48 @@ def postprocess():
         }
         v = df[c].values
         df[c+'_num'] = (v - v.mean()) / (v.std())
+    
+    
+    # train_val_test split
+    train_ratio = 0.6
+    test_ratio = 0.2 # val ratio = 0.2
+    
+    # for label == 0
+    subject_id = np.array(list(set(df[df['LABEL']==0]['SUBJECT ID'].values))) 
+    indices = list(range(len(subject_id)))
+    np.random.shuffle(indices)
+    train_inds_ = indices[:int(train_ratio*len(subject_id))]
+    test_inds_ = indices[int(train_ratio*len(subject_id)):int((train_ratio + test_ratio)*len(subject_id))]
+    val_inds_ = indices[int((train_ratio + test_ratio)*len(subject_id)):]
+    train_subject = list(subject_id[train_inds_])
+    val_subject = list(subject_id[val_inds_])
+    test_subject = list(subject_id[test_inds_])
+    
+    
+    # for label == 1
+    subject_id = np.array(list(set(df[df['LABEL']==1]['SUBJECT ID'].values))) 
+    indices = list(range(len(subject_id)))
+    np.random.shuffle(indices)
+    train_inds_ = indices[:int(train_ratio*len(subject_id))]
+    test_inds_ = indices[int(train_ratio*len(subject_id)):int((train_ratio + test_ratio)*len(subject_id))]
+    val_inds_ = indices[int((train_ratio + test_ratio)*len(subject_id)):]
+    train_subject = list(subject_id[train_inds_]) + train_subject
+    val_subject = list(subject_id[val_inds_]) + val_subject
+    test_subject = list(subject_id[test_inds_]) + test_subject
+
+    subject_id = np.array(subject_id)
+    
+    def split(x):
+        if x in train_subject:
+            return 'train'
+        elif x in val_subject:
+            return 'val'
+        elif x in test_subject:
+            return 'test'
+        
+    splits = np.array(list(map(split, df['SUBJECT ID'])))
+    df['SPLIT'] = splits
+    
     
     df.to_csv(join(ROOT_PATH, 'data_full.csv'), index=False)
     # with open(join(ROOT_PATH, 'meta.json'), 'w') as f:

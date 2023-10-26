@@ -6,7 +6,7 @@ import clip
 from .residual_modules import ResidualConnection
 from .modules import AttentivePooling
 from .llm import clip_bert
-from .resnet import clip_resnet50_encoder  
+from .resnet import clip_resnet50_encoder, medclip_resnet50_encoder 
 from .vit import clip_vit_b_32_encoder
 
 class MultimodalModel(nn.Module):
@@ -59,11 +59,15 @@ class MultimodalModel(nn.Module):
             assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
         elif encoder_name == 'rn50_clip_res':
             model_ = clip_resnet50_encoder()
-            model = ResidualConnection(model_, model_, channel=1024, dim=0) # deepcopy is integrated inside the module
+            model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0) # deepcopy is integrated inside the module
             assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
+        elif encoder_name == 'rn50_medclip_res':
+            model_ = medclip_resnet50_encoder()
+            model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0) # deepcopy is integrated inside the module
+            assert self.feat_dim == 512,f'embedding dimension {self.feat_dim} is illegal'
         elif encoder_name == 'vitb32_clip_res':
             model = clip_vit_b_32_encoder()
-            model = ResidualConnection(model_, model_, channel=768, dim=0) # deepcopy is integrated inside the module
+            model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0) # deepcopy is integrated inside the module
             assert self.feat_dim == 768,f'embedding dimension {self.feat_dim} is illegal'            
         else:
             raise ValueError        
