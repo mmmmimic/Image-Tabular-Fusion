@@ -11,7 +11,10 @@ MODEL = {
     'clip_resnet50': clip_resnet50,
     'vitb16': vit_b_16,
     'mm': MultimodalModel,
-    'res_mm': ResMultimodalModel
+    'res_mm': ResMultimodalModel,
+    'film': FilmHNN,
+    'daft': DAFT,
+    'ppnet': PPNet
 } 
 
 LOSS = {
@@ -34,7 +37,9 @@ DATASET = {
     'covidar': COVID19AR,
     'preload_covidar': COVID19ARPre,
     'mug': MUG, 
-    'preload_mug': MUGPre
+    'preload_mug': MUGPre,
+    'isup': ISUP,
+    'preload_isup': ISUPPre
 }
 
 Embedder = {

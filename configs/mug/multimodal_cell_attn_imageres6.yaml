@@ -1,7 +1,7 @@
 train:
-  batch_size: 16
+  batch_size: 32
   num_epochs: 100
-  lr: 0.00001
+  lr: 0.0001
   weight_decay: 0.0001
   warmup_steps: 0 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
@@ -28,7 +28,7 @@ data:
         train_shape: [224, 224]
         test_shape: [224, 224]
         norm: True
-        aug_rate: 1
+        aug_rate: 0.9
         train_augs: "T.Compose([ \
         T.RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
         T.RandomHorizontalFlip(p=0.5), \
@@ -39,7 +39,7 @@ data:
         test_augs: ""
     modal: ['tab', 'img']
     kwd: clip_cell
-    root_dir: /home/lmx/Image-Tabular-Fusion/data/mug_dataset/CSGO-Skin-quality/
+    root_dir: /home/lmx/Image-Tabular-Fusion/data/mug_dataset/Hearthstone-Minion-race
 
 model:
   name: mm
@@ -50,7 +50,7 @@ model:
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
     tab_emb_dim: 1024
-    num_classes: 6
+    num_classes: 16
     feat_dim: 1024
     fusion: attn
     image_encoder: rn50_clip_res

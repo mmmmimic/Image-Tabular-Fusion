@@ -456,7 +456,143 @@ class MUGPre(Dataset):
    
     def __len__(self):
         return len(self.df)
-  
+
+class ISUP(TabularData):
+    def __init__(self, split: str, transforms: dict, numerical: bool=False, 
+                 tab_embedder=None, 
+                 root_dir:str='data/prostate_ISUP', preload_images=False, modal = ['img', 'tab'], *args, **kwargs) -> None:
+        super().__init__(split, transforms, tab_embedder, root_dir, preload_images, *args, **kwargs)
+        self.split = split
+        # tabular data
+        self.df = pd.read_csv(pth.join(root_dir, 'data_full.csv'))
+        self.df = self.df[self.df['split']==split]
+        self.labels = self.df['label'].values
+        
+        # load tabular data meta infomation, including column field length and type
+        with open(pth.join(root_dir, 'meta.json'), 'r') as f:
+            self.meta_info = json.load(f)
+        
+        self.transforms = transforms
+        
+        if numerical:
+            for c in list(self.meta_info.keys()):
+                self.df[c] = self.df[c+'_num'].values
+        
+        self.tab_embedder = tab_embedder
+        
+        self.modal = modal
+        if 'img' in modal:
+            image_paths = self.df['Image_DIR'].values
+            if preload_images:
+                self.images = self._cache_images(image_paths)
+            else:
+                self.images = image_paths
+             
+    def _cache_images(self, paths):
+        # preload all images
+        images = []
+        for img_path in paths:
+            _img = np.load(img_path)   
+            images.append(_img)
+        self.images = images
+
+    def __getitem__(self, index: int) -> dict:
+        
+        data = {}
+        
+        if 'tab' in self.modal:
+            # load tabular data
+            tab_tf = self.transforms['tab_tf']
+            df = tab_tf(index, self.df)
+            line = self.tab_embedder.get_line(df, self.meta_info, index)
+            tab_line = line['line_embd']
+            data['tab_line'] = tab_line
+            # data['tab_sentence'] = line['line_sentence']
+            
+        if 'img' in self.modal:
+            # load image data
+            img_tf = self.transforms['img_tf']
+            if self.preload_images:
+                image = self.images[index]
+            else:
+                image = np.load(self.images[index])
+                for i in range(3):
+                    image[...,i] = (image[...,i] - image[...,i].min()) / (image[...,i].max() - image[...,i].min()) 
+                image = np.array(image*255, dtype=np.uint8)
+                image = Image.fromarray(image)
+            image = img_tf(image).float()
+            data['image'] = image
+        
+        label = self.labels[index]
+        
+        data['label'] = label
+        
+        return data        
+
+class ISUPPre(Dataset):
+    def __init__(self, split: str, transforms: dict, kwd:str='',
+                 root_dir:str='data/prostate_ISUP', modal=['img', 'tab'], preload_images=False, *args, **kwargs) -> None:
+        super().__init__()
+        self.split = split
+        # tabular data
+        self.df = pd.read_csv(pth.join(root_dir, 'data_full.csv'))
+        self.df = self.df[self.df['split']==split]
+        self.labels = self.df['label'].values
+        self.tab_data = np.load(pth.join(root_dir, f"{kwd}_{split}.npy"))
+        
+        # load tabular data meta infomation, including column field length and type
+        with open(pth.join(root_dir, 'meta.json'), 'r') as f:
+            self.meta_info = json.load(f)
+        
+        self.transforms = transforms
+        
+        self.preload_images = preload_images
+        self.modal = modal
+        if 'img' in modal:
+            image_paths = self.df['Image_DIR'].values
+            if preload_images:
+                self.images = self._cache_images(image_paths)
+            else:
+                self.images = image_paths    
+    
+    def __getitem__(self, index: int) -> dict:
+        
+        data = {}
+        
+        if 'tab' in self.modal:
+            # load tabular data
+            data['tab_line'] = torch.tensor(self.tab_data[index, ...]).float()
+            
+        if 'img' in self.modal:
+            # load image data
+            img_tf = self.transforms['img_tf']
+            if self.preload_images:
+                image = self.images[index]
+            else:
+                image = np.load(self.images[index])
+                for i in range(3):
+                    image[...,i] = (image[...,i] - image[...,i].min()) / (image[...,i].max() - image[...,i].min()) 
+                image = np.array(image*255, dtype=np.uint8)
+                image = Image.fromarray(image)
+            image = img_tf(image).float()
+            data['image'] = image
+        
+        label = self.labels[index]
+        
+        data['label'] = label
+        
+        return data
+
+    def get_labels(self):
+        # for resampling
+        return self.labels
+    
+    def __repr__(self) -> str:
+        return super().__repr__()
+   
+    def __len__(self):
+        return len(self.df)
+
     
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
@@ -482,7 +618,8 @@ if __name__ == "__main__":
     # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder(cellwise=False, context = 'car', chatgpt_tmpl=None))
     # trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
     # trainset = COVID19AR(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/covid19_ar/chatgpt_tmpl.txt'))
-    trainset = MUG(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=True, context = None, chatgpt_tmpl=None)) 
+    # trainset = MUG(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=True, context = None, chatgpt_tmpl=None)) 
+    trainset = ISUP(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/prostate_ISUP/chatgpt_tmpl.txt'))
     data = trainset[100]
     image = data['image']
     tab_line = data['tab_line']

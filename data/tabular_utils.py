@@ -106,6 +106,8 @@ class TextEmbedder(DefaultEmbedder):
             t = '<' + meta_info[c]['full_name'] + '>'
             sentence = sentence.replace(t, str(df[c].values[index]))
             line_sentence = sentence.split('\n')
+            if not len(line_sentence[-1]):
+              line_sentence = line_sentence[:-1] # remove the empty line if any
 
         else:   
           line_sentence = []          
@@ -133,6 +135,7 @@ class TextEmbedder(DefaultEmbedder):
             line_sentence = [line_sentence]
 
         line['line_sentence'] = line_sentence
+
         # generate text embedding
         if self.model == 'clip':
           # clip
