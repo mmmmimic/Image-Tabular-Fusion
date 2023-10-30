@@ -381,13 +381,136 @@ def process_hs_as(ROOT_PATH):
                     }
     # with open(join(ROOT_PATH, 'meta.json'), 'w') as f:
     #     f.write(json.dumps(meta, indent=4))   
-        
-        
+
+def process_hs_mr(ROOT_PATH):
+    ROOT_PATH = join(ROOT_PATH, 'Hearthstone-Minion-race')
+    label_key = 'race'
+    
+    train_df = pd.read_csv(join(ROOT_PATH, 'train.csv'))
+    dev_df = pd.read_csv(join(ROOT_PATH, 'dev.csv'))
+    test_df = pd.read_csv(join(ROOT_PATH, 'test.csv'))
+    
+    columns = list(train_df.columns)
+    
+    print(columns)
+    
+    # fill the table
+    def _fill(df):
+        df = df.astype('string')
+        df = df.replace(np.nan, 'Unkonwn')
+        return df
+
+    train_df = _fill(train_df)
+    dev_df = _fill(dev_df)
+    test_df = _fill(test_df)
+    
+    # save image path and save label
+    def _get_labels(train_df, dev_df, test_df):
+        df = pd.concat([train_df, dev_df, test_df], axis=0)
+        labels = df[label_key].values
+        unique_labels = list(set(labels))
+        mapping_dict = dict(zip(unique_labels, list(range(len(unique_labels)))))
+        return mapping_dict
+    
+    mapping_dict = _get_labels(train_df, dev_df, test_df)
+    
+    labels = train_df[label_key].values    
+    labels = np.array(list(map(lambda x: mapping_dict[x], labels)), dtype=np.int32)
+    train_df['label'] = labels
+    
+    labels = dev_df[label_key].values    
+    labels = np.array(list(map(lambda x: mapping_dict[x], labels)), dtype=np.int32)
+    dev_df['label'] = labels
+    
+    labels = test_df[label_key].values    
+    labels = np.array(list(map(lambda x: mapping_dict[x], labels)), dtype=np.int32)
+    test_df['label'] = labels
+    
+    # save df
+    train_df.to_csv(join(ROOT_PATH, 'train_full.csv'), index=False)
+    dev_df.to_csv(join(ROOT_PATH, 'dev_full.csv'), index=False)
+    test_df.to_csv(join(ROOT_PATH, 'test_full.csv'), index=False)
+    
+    # create meta.json
+    meta = {}
+    for c in columns:
+        if c not in ['Image Path', label_key]:
+            meta[c] = {
+                        'field_length': 1,
+                        'type': 'continuous',
+                        'full_name': ''
+                    }
+    with open(join(ROOT_PATH, 'meta.json'), 'w') as f:
+        f.write(json.dumps(meta, indent=4))   
+            
+def process_hs_ss(ROOT_PATH):
+    ROOT_PATH = join(ROOT_PATH, 'Hearthstone-Spell-spellSchool')
+    label_key = 'spellSchool'
+    
+    train_df = pd.read_csv(join(ROOT_PATH, 'train.csv'))
+    dev_df = pd.read_csv(join(ROOT_PATH, 'dev.csv'))
+    test_df = pd.read_csv(join(ROOT_PATH, 'test.csv'))
+    
+    columns = list(train_df.columns)
+    
+    print(columns)
+    
+    # fill the table
+    def _fill(df):
+        df = df.astype('string')
+        df = df.replace(np.nan, 'Unkonwn')
+        return df
+
+    train_df = _fill(train_df)
+    dev_df = _fill(dev_df)
+    test_df = _fill(test_df)
+    
+    # save image path and save label
+    def _get_labels(train_df, dev_df, test_df):
+        df = pd.concat([train_df, dev_df, test_df], axis=0)
+        labels = df[label_key].values
+        unique_labels = list(set(labels))
+        mapping_dict = dict(zip(unique_labels, list(range(len(unique_labels)))))
+        return mapping_dict
+    
+    mapping_dict = _get_labels(train_df, dev_df, test_df)
+    
+    labels = train_df[label_key].values    
+    labels = np.array(list(map(lambda x: mapping_dict[x], labels)), dtype=np.int32)
+    train_df['label'] = labels
+    
+    labels = dev_df[label_key].values    
+    labels = np.array(list(map(lambda x: mapping_dict[x], labels)), dtype=np.int32)
+    dev_df['label'] = labels
+    
+    labels = test_df[label_key].values    
+    labels = np.array(list(map(lambda x: mapping_dict[x], labels)), dtype=np.int32)
+    test_df['label'] = labels
+    
+    # save df
+    train_df.to_csv(join(ROOT_PATH, 'train_full.csv'), index=False)
+    dev_df.to_csv(join(ROOT_PATH, 'dev_full.csv'), index=False)
+    test_df.to_csv(join(ROOT_PATH, 'test_full.csv'), index=False)
+    
+    # create meta.json
+    meta = {}
+    for c in columns:
+        if c not in ['Image Path', label_key]:
+            meta[c] = {
+                        'field_length': 1,
+                        'type': 'continuous',
+                        'full_name': ''
+                    }
+    with open(join(ROOT_PATH, 'meta.json'), 'w') as f:
+        f.write(json.dumps(meta, indent=4))   
+                  
 if __name__ == "__main__":
-    process_pokemon_primarytype(ROOT_PATH)
-    process_pokemon_secondarytype(ROOT_PATH)
-    process_lol_sc(ROOT_PATH)
-    process_csg_sq(ROOT_PATH)
-    process_hs_ac(ROOT_PATH)
-    process_hs_as(ROOT_PATH)
+    # process_pokemon_primarytype(ROOT_PATH)
+    # process_pokemon_secondarytype(ROOT_PATH)
+    # process_lol_sc(ROOT_PATH)
+    # process_csg_sq(ROOT_PATH)
+    # process_hs_ac(ROOT_PATH)
+    # process_hs_as(ROOT_PATH)
+    process_hs_mr(ROOT_PATH)
+    process_hs_ss(ROOT_PATH)
     

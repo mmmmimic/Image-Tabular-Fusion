@@ -1,11 +1,11 @@
 train:
   batch_size: 16
-  num_epochs: 100
+  num_epochs: 50
   lr: 0.00001
-  weight_decay: 0.0001
-  warmup_steps: 0 # 0 if activating reduceonplateau
+  weight_decay: 0.00001
+  warmup_steps: 10 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
-  resampling: False # True if sample number is considerably imbalanced among categories 
+  resampling: True # True if sample number is considerably imbalanced among categories 
   device: cuda # (cuda, cpu)
   accum_step: 1 # >1 means gradient accumulation over iterations
   mode: accum # (accum, avg), if the dataset is too large, set to avg to run AverageMeter over batches
@@ -15,10 +15,10 @@ train:
       weight: 1
       config: {}
   monitor_metric: acc
-  seed: 2023 # -1 for not fixing random seede
+  seed: 2023 # -1 for not fixing random seed
    
 data:
-  dataset: preload_mug
+  dataset: preload_isup
   config:
     transforms:
       tabular:
@@ -28,18 +28,16 @@ data:
         train_shape: [224, 224]
         test_shape: [224, 224]
         norm: True
-        aug_rate: 1
+        aug_rate: 0.95
         train_augs: "T.Compose([ \
         T.RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
         T.RandomHorizontalFlip(p=0.5), \
-        T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8], contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), \ 
         T.RandomGrayscale(p=0.2), \ 
-        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5) \ 
+        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5)
         ])"
         test_augs: ""
-    modal: ['tab', 'img']
+    modal: ['img', 'tab']
     kwd: clip_cell
-    root_dir: /home/lmx/Image-Tabular-Fusion/data/mug_dataset/CSGO-Skin-quality/
 
 model:
   name: mm
@@ -50,7 +48,7 @@ model:
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
     tab_emb_dim: 1024
-    num_classes: 6
+    num_classes: 3
     feat_dim: 1024
     fusion: attn
     image_encoder: rn50_clip_res

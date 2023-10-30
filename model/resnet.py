@@ -446,6 +446,7 @@ def clip_resnet50(num_classes):
     )    
     return model
 
+
 def medclip_resnet50_encoder():
     model = MedCLIPModel(vision_cls = MedCLIPVisionModel)
     model.from_pretrained()
