@@ -772,8 +772,8 @@ if __name__ == "__main__":
     # trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
     # trainset = COVID19AR(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/covid19_ar/chatgpt_tmpl.txt'))
     # trainset = MUG(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=True, context = None, chatgpt_tmpl=None)) 
-    # trainset = ISUP(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/prostate_ISUP/chatgpt_tmpl.txt'))
-    trainset = DVMLow(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder(), ratio=0.01)
+    trainset = ISUP(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/prostate_ISUP/chatgpt_tmpl.txt'))
+    # trainset = DVMLow(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder(), ratio=0.01)
     data = trainset[0]
     image = data['image']
     tab_line = data['tab_line']

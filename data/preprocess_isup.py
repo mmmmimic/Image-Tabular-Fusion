@@ -74,6 +74,28 @@ def generate_image():
             s = np.array(s)
             np.save(join(f, f'img_{i}.npy'), s)    
 
+
+def read_folder1(folder):
+    # there are three modalities: ADC, DWI, and T2W
+    t2w = read_nii(join(folder, 'T2W.nii.gz'))
+    
+    t2w = preprocess(t2w)
+    
+    combined_img = np.concatenate((t2w, t2w, t2w), axis=-1)
+    
+    mask = read_nii(join(folder, 'Con_gt.nii.gz'))
+    
+    return combined_img, mask   
+
+def generate_image1():
+    folders = glob(join(ROOT, 'processed_data', '*'))
+    for f in tqdm(folders):
+        img, mask = read_folder1(f)
+        selected_img = crop_roi(img, mask)
+        for i, s in enumerate(selected_img, 0):
+            s = np.array(s)
+            np.save(join(f, f'img_{i}1.npy'), s)    
+
 def map_label(x):
     if x == 0:
         return 0
@@ -271,4 +293,5 @@ if __name__ == "__main__":
     # check_columns()
     # write_csv()
     # complete_csv()
-    split_data()
+    # split_data()
+    generate_image1()

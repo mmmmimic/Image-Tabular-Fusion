@@ -6,11 +6,14 @@ import clip
 from .residual_modules import ResidualConnection
 from .modules import AttentivePooling
 from .llm import clip_bert
-from .resnet import clip_resnet50_encoder, medclip_resnet50_encoder 
+from .resnet import clip_resnet50_encoder, medclip_resnet50_encoder , pubmedclip_resnet50_encoder
 from .vit import clip_vit_b_32_encoder
 
 class MultimodalModel(nn.Module):
-    def __init__(self, tab_emb_dim, num_classes, feat_dim = 1024, fusion='cat', image_encoder='rn50', tab_encoder='mlp', frozen_tab=True, *args, **kwargs) -> None:
+    def __init__(self, tab_emb_dim, num_classes, feat_dim = 1024, fusion='cat', 
+                 image_encoder='rn50', tab_encoder='mlp', frozen_tab=True, 
+                 complex_classifier = False, 
+                 *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         '''
         Structure:
@@ -26,7 +29,19 @@ class MultimodalModel(nn.Module):
         self.fusion = fusion
         self._init_fuser()
         
-        self.classifier = nn.Linear(self.fused_dim, num_classes)
+        if complex_classifier:
+            self.classifier = nn.Sequential(
+                            nn.Linear(self.fused_dim, self.fused_dim),
+                            nn.BatchNorm1d(self.fused_dim),
+                            nn.LeakyReLU(),
+                            nn.Dropout(0.5),
+                            nn.Linear(self.fused_dim, self.fused_dim),
+                            nn.BatchNorm1d(self.fused_dim),
+                            nn.LeakyReLU(),
+                            nn.Linear(self.fused_dim, num_classes)
+            )
+        else:
+            self.classifier = nn.Linear(self.fused_dim, num_classes)
         
         self.frozen_tab = frozen_tab
 
@@ -65,6 +80,10 @@ class MultimodalModel(nn.Module):
             model_ = medclip_resnet50_encoder()
             model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0) # deepcopy is integrated inside the module
             assert self.feat_dim == 512,f'embedding dimension {self.feat_dim} is illegal'
+        elif encoder_name == 'rn50_pubmedclip_res':
+            model_ = pubmedclip_resnet50_encoder()
+            model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0) # deepcopy is integrated inside the module
+            assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
         elif encoder_name == 'vitb32_clip_res':
             model = clip_vit_b_32_encoder()
             model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0) # deepcopy is integrated inside the module

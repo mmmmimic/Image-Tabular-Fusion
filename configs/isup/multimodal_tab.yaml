@@ -1,7 +1,7 @@
 train:
   batch_size: 16
-  num_epochs: 50
-  lr: 0.00001
+  num_epochs: 20
+  lr: 0.0001
   weight_decay: 0.00001
   warmup_steps: 10 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
@@ -30,7 +30,7 @@ data:
         norm: True
         aug_rate: 0.95
         train_augs: "T.Compose([ \
-        T.RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
+        T.RandomResizedCrop(size=(224, 224), scale=(0.2, 1.0), ratio=(0.75, 1.3333)), \
         T.RandomHorizontalFlip(p=0.5), \
         T.RandomGrayscale(p=0.2), \ 
         T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5)
@@ -53,6 +53,8 @@ model:
     fusion: attn
     image_encoder: rn50_clip_res
     tab_encoder: identical
+    complex_classifier: True
+  
 
 
     
