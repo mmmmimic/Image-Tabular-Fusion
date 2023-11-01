@@ -210,6 +210,159 @@ class DVMPreRes(DVMPre):
         
         return data
 
+class DVMLow(TabularData):
+    def __init__(self, split: str, transforms: dict, numerical: bool=False, 
+                 tab_embedder=None, 
+                 root_dir:str='data/dvm_car', preload_images=False, modal = ['img', 'tab'], ratio=0.1, *args, **kwargs) -> None:
+        '''
+            numerical (bool): whether use normalized and categorized numerical values for each cell
+        '''
+        super().__init__(split, transforms, tab_embedder, root_dir, preload_images, *args, **kwargs)
+        self.split = split
+        
+        # load index
+        if split == 'train':
+            index = np.load(pth.join(root_dir, f"ids_{str(ratio).replace('.','')}.npy"))
+        
+            # tabular data
+            self.df = pd.read_csv(pth.join(root_dir, f'{split}_df_full.csv')).iloc[index, :]
+            self.labels = np.load(pth.join(root_dir, f'{split}_labels.npy'))[index]
+        else:
+            # tabular data
+            self.df = pd.read_csv(pth.join(root_dir, f'{split}_df_full.csv'))
+            self.labels = np.load(pth.join(root_dir, f'{split}_labels.npy'))      
+        
+        assert len(self.df) == len(self.labels),'Label is inconsistent with the tabular data'
+        
+        # load tabular data meta infomation, including column field length and type
+        with open(pth.join(root_dir, 'meta.json'), 'r') as f:
+            self.meta_info = json.load(f)
+        
+        self.transforms = transforms
+        
+        if numerical:
+            for c in list(self.meta_info.keys()):
+                self.df[c] = self.df[c+'_num'].values
+        
+        self.tab_embedder = tab_embedder
+        
+        self.modal = modal
+        if 'img' in modal:
+            if self.split == 'train':
+                image_paths = np.load(pth.join(root_dir, f'{split}_paths.npy'))[index]
+            else:
+                image_paths = np.load(pth.join(root_dir, f'{split}_paths.npy'))
+                
+            if preload_images:
+                self.images = self._cache_images(image_paths)
+            else:
+                self.images = image_paths
+    
+    def __getitem__(self, index: int) -> dict:
+        
+        data = {}
+        
+        if 'tab' in self.modal:
+            # load tabular data
+            tab_tf = self.transforms['tab_tf']
+            df = tab_tf(index, self.df)
+            line = self.tab_embedder.get_line(df, self.meta_info, index)
+            tab_line = line['line_embd']
+            data['tab_line'] = tab_line
+            # data['tab_sentence'] = line['line_sentence']
+            
+        if 'img' in self.modal:
+            # load image data
+            img_tf = self.transforms['img_tf']
+            if self.preload_images:
+                image = self.images[index]
+            else:
+                image = Image.open(self.images[index])
+            image = img_tf(image).float()
+            data['image'] = image
+        
+        label = self.labels[index]
+        
+        data['label'] = label
+        
+        return data
+
+class DVMLowPre(Dataset):
+    def __init__(self, split: str, transforms: dict, kwd:str='',
+                 root_dir:str='data/dvm_car', modal=['img', 'tab'], preload_images=False, ratio=0, *args, **kwargs) -> None:
+        super().__init__()
+        self.split = split
+        # load index
+        if split == 'train':
+            index = np.load(pth.join(root_dir, f"ids_{str(ratio).replace('.','')}.npy"))
+        
+            # tabular data
+            self.df = pd.read_csv(pth.join(root_dir, f'{split}_df_full.csv')).iloc[index, :]
+            self.labels = np.load(pth.join(root_dir, f'{split}_labels.npy'))[index]
+        else:
+            # tabular data
+            self.df = pd.read_csv(pth.join(root_dir, f'{split}_df_full.csv'))
+            self.labels = np.load(pth.join(root_dir, f'{split}_labels.npy'))   
+        
+        if self.split == 'train' and ratio:
+            self.tab_data = np.load(pth.join(root_dir, f"{kwd}{str(ratio).replace('.','')}_{split}.npy"))
+        else:
+            self.tab_data = np.load(pth.join(root_dir, f"{kwd}_{split}.npy"))
+            
+        assert len(self.df) == len(self.labels),'Label is inconsistent with the tabular data'
+        
+        # load tabular data meta infomation, including column field length and type
+        with open(pth.join(root_dir, 'meta.json'), 'r') as f:
+            self.meta_info = json.load(f)
+        
+        self.transforms = transforms
+        
+        self.preload_images = preload_images
+        self.modal = modal
+        if 'img' in modal:
+            if self.split == 'train':
+                image_paths = np.load(pth.join(root_dir, f'{split}_paths.npy'))[index]
+            else:
+                image_paths = np.load(pth.join(root_dir, f'{split}_paths.npy'))
+            if preload_images:
+                self.images = self._cache_images(image_paths)
+            else:
+                self.images = image_paths    
+    
+    def __getitem__(self, index: int) -> dict:
+        
+        data = {}
+        
+        if 'tab' in self.modal:
+            # load tabular data
+            data['tab_line'] = torch.tensor(self.tab_data[index, ...]).float()
+            
+        if 'img' in self.modal:
+            # load image data
+            img_tf = self.transforms['img_tf']
+            if self.preload_images:
+                image = self.images[index]
+            else:
+                image = Image.open(self.images[index])
+            image = img_tf(image).float()
+            data['image'] = image
+        
+        label = self.labels[index]
+        
+        data['label'] = label
+        
+        return data
+
+    def get_labels(self):
+        # for resampling
+        return self.labels
+    
+    def __repr__(self) -> str:
+        return super().__repr__()
+   
+    def __len__(self):
+        return len(self.df)
+
 class COVID19AR(TabularData):
     def __init__(self, split: str, transforms: dict, numerical: bool=False, 
                  tab_embedder=None, 
@@ -619,8 +772,9 @@ if __name__ == "__main__":
     # trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
     # trainset = COVID19AR(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/covid19_ar/chatgpt_tmpl.txt'))
     # trainset = MUG(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=True, context = None, chatgpt_tmpl=None)) 
-    trainset = ISUP(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/prostate_ISUP/chatgpt_tmpl.txt'))
-    data = trainset[100]
+    # trainset = ISUP(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/prostate_ISUP/chatgpt_tmpl.txt'))
+    trainset = DVMLow(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder(), ratio=0.01)
+    data = trainset[0]
     image = data['image']
     tab_line = data['tab_line']
     label = data['label']

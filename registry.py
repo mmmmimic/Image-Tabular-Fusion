@@ -34,6 +34,8 @@ DATASET = {
     'dvm': DVM,
     'preload_dvm': DVMPre,
     'preloadres_dvm': DVMPreRes,
+    'dvm_lowregime': DVMLow,
+    'preload_dvm_lowregime': DVMLowPre,
     'covidar': COVID19AR,
     'preload_covidar': COVID19ARPre,
     'mug': MUG, 
