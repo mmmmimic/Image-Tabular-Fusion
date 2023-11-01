@@ -77,7 +77,7 @@ class AttentivePooling(nn.Module):
     def __init__(self, hidden_dim):
         super(AttentivePooling, self).__init__()
         self.hidden_dim = hidden_dim
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=8)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=8, batch_first=True)
         self.attention = nn.Linear(hidden_dim, 1, bias=False)
 
     def forward(self, x):
@@ -95,7 +95,7 @@ class GatedAttention(nn.Module):
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=8)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=8, batch_first=True)
         self.attention = nn.Linear(input_dim, hidden_dim, bias=False)
         self.gate = nn.Linear(input_dim, hidden_dim)
 
