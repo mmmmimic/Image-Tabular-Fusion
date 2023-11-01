@@ -60,6 +60,7 @@ model:
     fusion: cat
     image_encoder: rn50_clip
     tab_encoder: mlp
+    frozen_tab: False
 
 
     

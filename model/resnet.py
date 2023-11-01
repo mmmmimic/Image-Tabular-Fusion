@@ -24,7 +24,8 @@ __all__ = [
     "wide_resnet50_2",
     "wide_resnet101_2",
     "clip_resnet50",
-    "clip_resnet50_encoder"
+    "clip_resnet50_encoder",
+    "pubmedclip_resnet50_encoder"
 ]
 
 
@@ -452,6 +453,12 @@ def medclip_resnet50_encoder():
     model.from_pretrained()
     model = model.vision_model
     return model   
+
+def pubmedclip_resnet50_encoder():
+    model, _ = clip.load('RN50', device='cpu')
+    model.load_state_dict(torch.load('/home/lmx/Image-Tabular-Fusion/pretrained/PubMedCLIP_RN50.pth')['state_dict'])
+    model = model.visual
+    return model    
 
 if __name__ == "__main__":
     # model = resnet50(pretrained=True, progress=True, num_classes=20)
