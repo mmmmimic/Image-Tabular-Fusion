@@ -15,10 +15,10 @@ train:
       weight: 1
       config: {}
   monitor_metric: acc
-  seed: 2023 # -1 for not fixing random seed
+  seed: 2023 # -1 for not fixing random seede
    
 data:
-  dataset: preload_dvm
+  dataset: preload_dvm_lowregime
   config:
     transforms:
       tabular:
@@ -40,13 +40,11 @@ data:
         T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5), \ 
         T.Resize(size=(224, 224))
         ])"
-        # train_augs: "
-        # T.Compose([T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), T.Resize(size=(224, 224)), T.CenterCrop(size=(224, 224))])
-        # "
         test_augs: "T.Compose([T.Resize(size=(128, 128)), \
                     T.Resize(size=(224, 224))])"
     modal: ['tab', 'img']
-    kwd: onehot_noaug
+    ratio: 0.1
+    kwd: clip_cell
 
 model:
   name: mm
@@ -56,13 +54,12 @@ model:
     model_output: tensor # (tensor) | (dict)
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
+    tab_emb_dim: 1024
     num_classes: 286
-    tab_emb_dim: 63
     feat_dim: 1024
-    fusion: cat
+    fusion: attn
     image_encoder: rn50_clip
-    tab_encoder: mlp
-    frozen_tab: False
+    tab_encoder: identical
 
 
     

@@ -14,7 +14,8 @@ MODEL = {
     'res_mm': ResMultimodalModel,
     'film': FilmHNN,
     'daft': DAFT,
-    'ppnet': PPNet
+    'ppnet': PPNet,
+    'tabattn': ResNetTabAttention
 } 
 
 LOSS = {

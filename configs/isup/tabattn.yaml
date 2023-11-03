@@ -45,21 +45,16 @@ data:
     kwd: 'onehot_noaug'
 
 model:
-  name: mm
+  name: tabattn
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: dict # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    tab_emb_dim: 1024
+    n_frames: 1
+    n_tab: 21
     num_classes: 3
-    feat_dim: 1024
-    fusion: attn
-    image_encoder: rn50_clip_res
-    tab_encoder: identical
-    complex_classifier: True
-  
 
 
     
