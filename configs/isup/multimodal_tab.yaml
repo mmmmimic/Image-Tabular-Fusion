@@ -20,6 +20,11 @@ train:
 data:
   dataset: preload_isup
   config:
+    numerical: True
+    preload_images: False 
+    tab_embedder:
+      name: onehot
+      config: {} 
     transforms:
       tabular:
         name: identity
@@ -37,7 +42,7 @@ data:
         ])"
         test_augs: ""
     modal: ['img', 'tab']
-    kwd: clip_tab
+    kwd: 'onehot_noaug'
 
 model:
   name: mm

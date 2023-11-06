@@ -1,6 +1,6 @@
 train:
   batch_size: 32
-  num_epochs: 200
+  num_epochs: 100
   lr: 0.0001
   weight_decay: 0.00001
   warmup_steps: 1000 # 0 if activating reduceonplateau
@@ -18,33 +18,38 @@ train:
   seed: 2023 # -1 for not fixing random seed
    
 data:
-  dataset: dvm
+  dataset: preload_dvm
   config:
-    numerical: True
-    cache_images: False 
-    tab_embedder:
-      name: onehot
-      config: {} 
     transforms:
       tabular:
+        # name: scarf # [scarf, random_mask, identity]
+        # config:
+        #   corrupt_rate: 0.3
         name: identity
         config: {}
       image:
-        train_shape: [128, 128]
-        test_shape: [128, 128]
+        train_shape: [224, 224]
+        test_shape: [224, 224]
         norm: True
-        aug_rate: 0.95
+        aug_rate: 1
         train_augs: "T.Compose([ \
         T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
         T.RandomHorizontalFlip(p=0.5), \
         T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8], contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), \ 
         T.RandomGrayscale(p=0.2), \ 
-        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5) \ 
+        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5), \ 
+        T.Resize(size=(224, 224))
         ])"
-        test_augs: ""
+        # train_augs: "
+        # T.Compose([T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), T.Resize(size=(224, 224)), T.CenterCrop(size=(224, 224))])
+        # "
+        test_augs: "T.Compose([T.Resize(size=(128, 128)), \
+                    T.Resize(size=(224, 224))])"
+    modal: ['tab', 'img']
+    kwd: onehot_noaug
 
 model:
-  name: mm_baseline
+  name: mm
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: dict # (tensor) | (dict)
@@ -53,10 +58,11 @@ model:
   config:
     num_classes: 286
     tab_emb_dim: 63
-    emb_dim: 1024
+    feat_dim: 1024
     fusion: cat
-    image_encoder: rn50
+    image_encoder: rn50_clip
     tab_encoder: mlp
+    frozen_tab: False
 
 
     

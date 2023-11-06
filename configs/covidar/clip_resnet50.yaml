@@ -1,7 +1,7 @@
 train:
   batch_size: 32
-  num_epochs: 50
-  lr: 0.000001
+  num_epochs: 15
+  lr: 0.0000001
   weight_decay: 0.0001
   warmup_steps: 100 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
@@ -9,12 +9,12 @@ train:
   device: cuda # (cuda, cpu)
   accum_step: 1 # >1 means gradient accumulation over iterations
   mode: accum # (accum, avg), if the dataset is too large, set to avg to run AverageMeter over batches
-  metric_names: ['acc', 'auc', 'avg_acc'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
+  metric_names: ['acc', 'auc', 'avg_acc', 'f1'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
   criterion: # specify cost function
     cse: 
       weight: 1
       config: {}
-  monitor_metric: acc
+  monitor_metric: auc
   seed: 2023 # -1 for not fixing random seed
    
 data:
@@ -35,11 +35,10 @@ data:
         norm: True
         aug_rate: 0.95
         train_augs: "T.Compose([ \
-        T.Resize((512, 512)),
-        T.RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
+        T.Resize((224, 224)),
         T.RandomHorizontalFlip(p=0.5), \
-        T.RandomGrayscale(p=0.2), \ 
-        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5)
+        T.RandomRotation(degrees=45), \
+        T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5), \
         ])"
         test_augs: ""
     modal: ['img']

@@ -10,6 +10,7 @@ from torch import Tensor
 from torch.hub import load_state_dict_from_url
 import clip
 from medclip import MedCLIPModel, MedCLIPVisionModel
+from .residual_modules import ResidualConnection
 
 
 __all__ = [
@@ -25,7 +26,8 @@ __all__ = [
     "wide_resnet101_2",
     "clip_resnet50",
     "clip_resnet50_encoder",
-    "pubmedclip_resnet50_encoder"
+    "pubmedclip_resnet50_encoder",
+    "clip_resnet50_dvm"
 ]
 
 
@@ -447,6 +449,28 @@ def clip_resnet50(num_classes):
     )    
     return model
 
+def clip_resnet50_dvm(freeze=True):
+    class _Model(nn.Module):
+        def __init__(self, freeze, *args, **kwargs) -> None:
+            super().__init__(*args, **kwargs)
+            model = ResidualConnection(clip_resnet50_encoder(), clip_resnet50_encoder(), channel=1024, dim=0)
+            model.load_state_dict(torch.load('/home/lmx/Image-Tabular-Fusion/dvm_rn50.t7'))
+            self.encoder = model
+            self.classifier = nn.Linear(1024, 286) # linear probe
+            self.freeze = freeze
+        
+        def forward(self, x):
+            if self.freeze:
+                with torch.no_grad():
+                    self.encoder.eval()
+                    x = self.encoder(x)
+            else:
+                x = self.encoder(x)
+            x = self.classifier(x)
+            return x
+        
+    model = _Model(freeze=freeze)
+    return model
 
 def medclip_resnet50_encoder():
     model = MedCLIPModel(vision_cls = MedCLIPVisionModel)

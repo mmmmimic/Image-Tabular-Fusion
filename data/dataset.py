@@ -428,7 +428,9 @@ class COVID19AR(TabularData):
 
 class COVID19ARPre(Dataset):
     def __init__(self, split: str, transforms: dict, kwd:str='',
-                 root_dir:str='data/covid19_ar', modal=['img', 'tab'], preload_images=False, *args, **kwargs) -> None:
+                 root_dir:str='data/covid19_ar', modal=['img', 'tab'], 
+                 preload_images=False, sample=False, 
+                 *args, **kwargs) -> None:
         super().__init__()
         self.split = split
         # tabular data
@@ -450,7 +452,14 @@ class COVID19ARPre(Dataset):
             if preload_images:
                 self.images = self._cache_images(image_paths)
             else:
-                self.images = image_paths    
+                self.images = image_paths  
+                
+        if sample and split == 'train':
+            inds = np.load(pth.join(root_dir, 'sample_ind.npy'))  
+            self.df = self.df.iloc[inds, :]
+            self.labels = self.labels[inds]
+            self.tab_data = self.tab_data[inds, :]
+            self.images = self.images[inds]
     
     def __getitem__(self, index: int) -> dict:
         
@@ -610,6 +619,125 @@ class MUGPre(Dataset):
     def __len__(self):
         return len(self.df)
 
+class MUGTri(Dataset):
+    def __init__(self, split: str, transforms=None, 
+                 root_dir:str='data/mug_dataset/Pokemon-primary_type', 
+                 modal = ['img', 'tab'], 
+                 *args, **kwargs) -> None:
+        super().__init__()
+        self.split = split
+        # tabular data
+        if split == 'val':
+            split = 'dev'
+        self.df = pd.read_csv(pth.join(root_dir, f'{split}_tri.csv'))
+        self.labels = self.df['label'].values
+        
+        # load tabular data meta infomation, including column field length and type
+        with open(pth.join(root_dir, 'meta_tri.json'), 'r') as f:
+            self.meta_info = json.load(f)
+        
+        self.transforms = transforms
+        
+        self.modal = modal
+        if 'img' in modal:
+            image_paths = self.df['Image Path'].values
+            image_paths = list(map(lambda x: pth.join(root_dir, x), image_paths))
+            self.images = image_paths
+            
+    def __getitem__(self, index: int) -> dict:
+        
+        data = {}
+        
+        if 'tab' in self.modal:
+            # load tabular data
+            text = ''
+            embd = []
+            for m in self.meta_info.keys():
+                if self.meta_info[m]['type'] == 'textual':
+                    text += str(self.df[m].values[index]) + ';'
+                elif self.meta_info[m]['type'] == 'continuous':
+                    v = self.df[m+'_num'].values[index]
+                    embd.append(v)
+                elif self.meta_info[m]['type'] == 'categorical':
+                    e = np.zeros(self.meta_info[m]['field_length'])
+                    e[int(self.df[m+'_num'].values[index])] = 1
+                    embd.extend(e)
+            text = text[:-1]
+            embd = np.array(embd)
+            embd = torch.from_numpy(embd)
+            data['text'] = text
+            data['embd'] = embd
+            
+        if 'img' in self.modal:
+            # load image data
+            img_tf = self.transforms['img_tf']
+            image = Image.open(self.images[index])
+            image = image.convert('RGB')
+            image = img_tf(image).float()
+            data['image'] = image
+        
+        label = self.labels[index]
+        
+        data['label'] = label
+        
+        return data
+    
+    def __len__(self):
+        return len(self.df)
+
+class MUGTriPre(Dataset):
+    def __init__(self, split: str, transforms=None, 
+                 root_dir:str='data/mug_dataset/Pokemon-primary_type', 
+                 modal = ['img', 'tab'], 
+                 *args, **kwargs) -> None:
+        super().__init__()
+        self.split = split
+        self.texts = np.load(pth.join(root_dir, f'text_{split}.npy'))
+        self.embds = np.load(pth.join(root_dir, f'onehot_{split}.npy'))
+        # tabular data
+        if split == 'val':
+            split = 'dev'
+        self.df = pd.read_csv(pth.join(root_dir, f'{split}_tri.csv'))
+        self.labels = self.df['label'].values
+        
+        self.transforms = transforms
+        
+        self.modal = modal
+        if 'img' in modal:
+            image_paths = self.df['Image Path'].values
+            image_paths = list(map(lambda x: pth.join(root_dir, x), image_paths))
+            self.images = image_paths
+            
+    def __getitem__(self, index: int) -> dict:
+        
+        data = {}
+        
+        if 'tab' in self.modal:
+            # load tabular data
+            data['text'] = torch.from_numpy(self.texts[index, :]).float()
+            data['embd'] = torch.from_numpy(self.embds[index, :]).float()
+            
+        if 'img' in self.modal:
+            # load image data
+            img_tf = self.transforms['img_tf']
+            image = Image.open(self.images[index])
+            image = image.convert('RGB')
+            image = img_tf(image).float()
+            data['image'] = image
+        
+        label = self.labels[index]
+        
+        data['label'] = label
+        
+        return data
+    
+    def __len__(self):
+        return len(self.df)
+    
+    def get_labels(self):
+        # for resampling
+        return self.labels     
+    
 class ISUP(TabularData):
     def __init__(self, split: str, transforms: dict, numerical: bool=False, 
                  tab_embedder=None, 

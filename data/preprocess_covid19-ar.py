@@ -21,7 +21,7 @@ CATEGORICAL_IDS = ['SEX', 'RACE', 'ZIP', 'EXTENSIVE BURNS', 'MALNUTRITION', 'CUR
                    'CHRONIC KIDNEY DISEASE', 'DIABETES TYPE I', 'DIABETES TYPE II', 'TRANSPLANT', 
                    'HEMODIALYSIS Pre Diagnosis', 'CANCER']
 CONTINOUS_IDS = ['AGE', 'LATEST_BMI', 'LATEST WEIGHT', 'LATEST HEIGHT']
-LABEL = 'ICU Admit'
+LABEL = 'MORTALITY'
 ######################
 
 # read tables and convert excel to csv
@@ -135,7 +135,7 @@ def wrapup(table_df, png_dirs):
         subject_id_ = PurePath(png).parts[-4] 
         subject_ids.append(subject_id_)
         
-        label = table_df[table_df['PATIENT_ID']==subject_id_]['ICU Admit'].values[0]
+        label = table_df[table_df['PATIENT_ID']==subject_id_][LABEL].values[0]
         label = 1 if label == 'yes' else 0
         labels.append(label)
         
@@ -235,17 +235,43 @@ def postprocess():
     df.to_csv(join(ROOT_PATH, 'data_full.csv'), index=False)
     # with open(join(ROOT_PATH, 'meta.json'), 'w') as f:
     #     f.write(json.dumps(meta, indent=4))
+
+def sample():
+    df = pd.read_csv(join(ROOT_PATH, 'data_full.csv'))
+    seed = 2023
+    random.seed(seed)
+    np.random.seed(seed)
+    # sample 10% train data
+    train_df = df[df['SPLIT']=='train']
+    val_df = df[df['SPLIT']=='val']
+    test_df = df[df['SPLIT']=='test']
     
+    n_samples = len(train_df)
+    inds =list(range(n_samples))
+    np.random.shuffle(inds)
+    inds = inds[:int(0.1*n_samples)]
+    np.save(join(ROOT_PATH, 'sample_ind.npy'), np.array(inds))
+    # train_df = train_df.reindex()
+    # train_df = train_df.iloc[inds,:]
+    # print(train_df)
+    # print(Counter(train_df['LABEL'].values))
+    # df = pd.concat((train_df, val_df, test_df), axis=0)
+    # df = df.reindex()
+    # df.to_csv(join(ROOT_PATH, 'data_sampled.csv'), index=False)
+    
+    # print(inds)
+
 if __name__ == "__main__":
-    meta_df, table_df = read_csv(META_PATH, TABLE_PATH)
-    dcm_dirs = collect_images(IMAGE_PATH, suffix='dcm')
-    png_dirs = collect_images(IMAGE_PATH, suffix='png')
-    if len(png_dirs) != len(dcm_dirs):
-        print('Convert DCM to PNG')
-        iterate_on_images(dcm_dirs) # convert dcm images to png images
-    # analyse_columns(table_df)
-    processed_table_df = process_columns(table_df)
-    # analyse_columns(processed_table_df)
-    # wrapup(processed_table_df, png_dirs)
-    postprocess()
+    # meta_df, table_df = read_csv(META_PATH, TABLE_PATH)
+    # dcm_dirs = collect_images(IMAGE_PATH, suffix='dcm')
+    # png_dirs = collect_images(IMAGE_PATH, suffix='png')
+    # if len(png_dirs) != len(dcm_dirs):
+    #     print('Convert DCM to PNG')
+    #     iterate_on_images(dcm_dirs) # convert dcm images to png images
+    # # analyse_columns(table_df)
+    # processed_table_df = process_columns(table_df)
+    # # analyse_columns(processed_table_df)
+    # # wrapup(processed_table_df, png_dirs)
+    # postprocess()
+    sample()
     

@@ -2,8 +2,8 @@ train:
   batch_size: 32
   num_epochs: 100
   lr: 0.0001
-  weight_decay: 0.001
-  warmup_steps: 0 # 0 if activating reduceonplateau
+  weight_decay: 0.00001
+  warmup_steps: 1000 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
   resampling: False # True if sample number is considerably imbalanced among categories 
   device: cuda # (cuda, cpu)
@@ -18,28 +18,33 @@ train:
   seed: 2023 # -1 for not fixing random seede
    
 data:
-  dataset: preload_mug
+  dataset: preload_dvm_lowregime
   config:
     transforms:
       tabular:
+        # name: scarf # [scarf, random_mask, identity]
+        # config:
+        #   corrupt_rate: 0.3
         name: identity
         config: {}
       image:
         train_shape: [224, 224]
         test_shape: [224, 224]
         norm: True
-        aug_rate: 0.9
+        aug_rate: 1
         train_augs: "T.Compose([ \
-        T.RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
+        T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
         T.RandomHorizontalFlip(p=0.5), \
         T.RandomApply([T.ColorJitter(brightness=[0.2, 1.8], contrast=[0.2, 1.8], saturation=[0.2, 1.8], hue=0)], p=0.8), \ 
         T.RandomGrayscale(p=0.2), \ 
-        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5) \ 
+        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5), \ 
+        T.Resize(size=(224, 224))
         ])"
-        test_augs: ""
+        test_augs: "T.Compose([T.Resize(size=(128, 128)), \
+                    T.Resize(size=(224, 224))])"
     modal: ['tab', 'img']
+    ratio: 0.1
     kwd: clip_cell
-    root_dir: /home/lmx/Image-Tabular-Fusion/data/mug_dataset/Pokemon-primary_type/
 
 model:
   name: mm
@@ -50,10 +55,10 @@ model:
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
     tab_emb_dim: 1024
-    num_classes: 18
+    num_classes: 286
     feat_dim: 1024
     fusion: attn
-    image_encoder: rn50_clip_res
+    image_encoder: rn50_clip
     tab_encoder: identical
 
 

@@ -70,6 +70,9 @@ def main(args, configs) -> int:
             trainer.resume(trainset, valset)
         else:
             trainer.fit(trainset, valset)
+        # after training, predict on the best checkpoint
+        trainer.predict_on_best(testset)
+        
     else:
         print('Evaluate the model')
         if checkpoint_path == 'best' or checkpoint_path == '':

@@ -39,7 +39,7 @@ data:
         test_augs: ""
     modal: ['tab', 'img']
     kwd: clip_cell
-    root_dir: /home/lmx/Image-Tabular-Fusion/data/mug_dataset/Hearthstone-Spell-spellSchool
+    root_dir: data/mug_dataset/LeagueOfLegends-Skin-category/
 
 model:
   name: mm
@@ -50,7 +50,7 @@ model:
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
     tab_emb_dim: 1024
-    num_classes: 8
+    num_classes: 7
     feat_dim: 1024
     fusion: attn
     image_encoder: rn50_clip_res

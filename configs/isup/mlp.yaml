@@ -1,15 +1,15 @@
 train:
-  batch_size: 32
-  num_epochs: 50
-  lr: 0.000001
-  weight_decay: 0.0001
-  warmup_steps: 100 # 0 if activating reduceonplateau
+  batch_size: 16
+  num_epochs: 20
+  lr: 0.0001
+  weight_decay: 0.00001
+  warmup_steps: 10 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
-  resampling: False # True if sample number is considerably imbalanced among categories 
+  resampling: True # True if sample number is considerably imbalanced among categories 
   device: cuda # (cuda, cpu)
   accum_step: 1 # >1 means gradient accumulation over iterations
   mode: accum # (accum, avg), if the dataset is too large, set to avg to run AverageMeter over batches
-  metric_names: ['acc', 'auc', 'avg_acc'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
+  metric_names: ['acc', 'avg_acc'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
   criterion: # specify cost function
     cse: 
       weight: 1
@@ -18,8 +18,13 @@ train:
   seed: 2023 # -1 for not fixing random seed
    
 data:
-  dataset: preload_covidar
+  dataset: preload_isup
   config:
+    numerical: True
+    preload_images: False 
+    tab_embedder:
+      name: onehot
+      config: {} 
     transforms:
       tabular:
         name: identity
@@ -30,30 +35,26 @@ data:
         norm: True
         aug_rate: 0.95
         train_augs: "T.Compose([ \
-        T.Resize((512, 512)),
-        T.RandomResizedCrop(size=(224, 224), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), \
+        T.RandomResizedCrop(size=(224, 224), scale=(0.2, 1.0), ratio=(0.75, 1.3333)), \
         T.RandomHorizontalFlip(p=0.5), \
         T.RandomGrayscale(p=0.2), \ 
         T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5)
         ])"
         test_augs: ""
-    modal: ['img', 'tab']
-    kwd: medclip_cell
+    modal: ['tab']
+    kwd: 'onehot_noaug'
 
 model:
-  name: mm
+  name: mlp
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
-    model_input: dict # (tensor) | (dict)
+    model_input: tensor # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
-    kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
+    kwd: tab_line # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    tab_emb_dim: 512
-    num_classes: 2
-    feat_dim: 512
-    fusion: attn
-    image_encoder: rn50_medclip_res
-    tab_encoder: identical
+    in_channels: 21
+    out_channels: 3
+    hid_channels: [2048]
 
 
     

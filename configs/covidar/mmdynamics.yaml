@@ -1,0 +1,60 @@
+train:
+  batch_size: 32
+  num_epochs: 15
+  lr: 0.0000005
+  weight_decay: 0.001
+  warmup_steps: 100 # 0 if activating reduceonplateau
+  optimizer_type: adamw # (sgd, adam, adamw)
+  resampling: True # True if sample number is considerably imbalanced among categories 
+  device: cuda # (cuda, cpu)
+  accum_step: 1 # >1 means gradient accumulation over iterations
+  mode: accum # (accum, avg), if the dataset is too large, set to avg to run AverageMeter over batches
+  metric_names: ['acc', 'auc', 'avg_acc', 'f1'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
+  criterion: # specify cost function
+    mmdynamic: 
+      weight: 1
+      config: {}
+  monitor_metric: auc
+  seed: 2023 # -1 for not fixing random seed
+   
+data:
+  dataset: preload_covidar
+  config:
+    transforms:
+      tabular:
+        name: identity
+        config: {}
+      image:
+        train_shape: [224, 224]
+        test_shape: [224, 224]
+        norm: True
+        aug_rate: 0.95
+        train_augs: "T.Compose([ \
+        T.Resize((224, 224)),
+        T.RandomResizedCrop(size=(224, 224), scale=(0.2, 1.0)), \
+        T.RandomHorizontalFlip(p=0.5), \
+        T.RandomRotation(degrees=45), \
+        T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5), \
+        ])"
+        test_augs: ""
+    modal: ['img', 'tab']
+    kwd: onehot_noaug
+
+model:
+  name: mmdynamic
+  wrapper:
+    wrapper_input: dict # (tuple) | (dict)
+    model_input: dict # (tensor) | (dict)
+    model_output: dict # (tensor) | (dict)
+    kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
+  config:
+    tab_emb_dim: 33
+    num_classes: 2
+    feat_dim: 1024
+    fusion: cat
+    image_encoder: rn50_clip
+    tab_encoder: mlp
+    frozen_tab: False
+
+
+    
