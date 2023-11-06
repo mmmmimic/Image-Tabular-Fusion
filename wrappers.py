@@ -58,6 +58,9 @@ class ModelWrapper(nn.Module):
                 wrapper_output['logit'] = model_output
             elif self.wrapper_input_type == 'tuple':
                 wrapper_output = {'logit': model_output, 'label': wrapper_input[1]}
+        elif self.model_output_type == 'dict':
+            wrapper_output = model_output
+            wrapper_output['label'] = wrapper_input['label']
         
         return wrapper_output
     

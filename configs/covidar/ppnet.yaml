@@ -38,22 +38,17 @@ data:
         ])"
         test_augs: ""
     modal: ['img', 'tab']
-    kwd: clip_context
+    kwd: onehot_noaug
 
 model:
-  name: mm
+  name: ppnet
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: dict # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    tab_emb_dim: 1024
+    tab_emb_dim: 33
     num_classes: 2
-    feat_dim: 1024
-    fusion: attn
-    image_encoder: rn50_clip_res
-    tab_encoder: identical
-
 
     

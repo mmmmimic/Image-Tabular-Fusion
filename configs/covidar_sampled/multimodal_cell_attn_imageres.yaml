@@ -38,7 +38,8 @@ data:
         ])"
         test_augs: ""
     modal: ['img', 'tab']
-    kwd: clip_context
+    kwd: clip_cell
+    sample: True
 
 model:
   name: mm

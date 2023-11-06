@@ -11,6 +11,7 @@ from os.path import join
 import os
 import json
 from pathlib import PurePath
+from functools import partial
 
 ROOT = 'data/prostate_ISUP/'
 
@@ -25,19 +26,16 @@ def preprocess(img):
     img = np.expand_dims(img, axis=-1)
     return img
 
-def get_area_slice(mask_slice):
+def get_area_slice(mask_slice, id_):
     # mask (b,w,h)
     # mask_slice (b, w)
-    # label (0, 1, 2)
-    # area_1 = (mask_slice == 1).sum()
-    area_2 = (mask_slice == 2).sum()
-    # return (area_1, area_2)
-    return area_2
+    # label (0, 1, 2, 3, 4)
+    area = (mask_slice == id_).sum()
+    return area
 
-def get_area(mask):
-    # mask (b, w, h)
-    mask = [mask[...,i] for i in range(mask.shape[-1])]
-    area = list(map(get_area_slice, mask))
+def get_area(masks, id_):
+    # masks: List[(b, w, h)]
+    area = list(map(partial(get_area_slice, id_), masks))
     return dict(zip(list(range(len(area))), area))
 
 def read_folder(folder):
@@ -58,11 +56,38 @@ def read_folder(folder):
 
 def crop_roi(combined_img, mask):
     # combined_img (b, w, h, 3), mask (b, w, h)
-    area = get_area(mask)
-    # filter slices with at least 5 label 2
-    thres = 10
-    slices = list(filter(lambda x: area[x] >= thres, area.keys()))
-    selected_img = [combined_img[...,s,:] for s in slices]
+    lesion_ids = list(set(np.array(mask, dtype=np.int64).flatten()))
+    lesion_ids = list(sorted(lesion_ids, reverse=True))
+    lesion_ids = list(filter(lambda x: x!=0, lesion_ids))
+    lesion_ids = list(filter(lambda x: x!=1, lesion_ids))
+    combined_img = [combined_img[...,i,:] for i in range(combined_img.shape[-2])]
+    mask = [mask[...,i] for i in range(mask.shape[-1])]
+    res_mask = []
+    res_image = []
+    selected_img = {}
+    for id_ in lesion_ids:
+        selected_img[id_] = []
+    
+    for id_ in lesion_ids:
+        area = get_area(mask, id_)
+        # filter slices with at least 5 label 2
+        # thres = 10
+        # slices = list(filter(lambda x: area[x] >= thres, area.keys()))
+        slices = list(sorted(area.keys(), key=lambda x: area[x]))
+        thres = 10
+        slices = list(filter(lambda x: area[x] >= thres, slices))        
+        
+        for s in range(len(mask)):
+            if s in slices:
+                selected_img[id_].append(combined_img[s])
+            else:
+                res_mask.append(mask[s])
+                res_image.append(combined_img[s])
+        mask = res_mask
+        combined_img = res_image
+        res_mask = []
+        res_image = []
+        
     return selected_img
 
 def generate_image():
@@ -70,31 +95,10 @@ def generate_image():
     for f in tqdm(folders):
         img, mask = read_folder(f)
         selected_img = crop_roi(img, mask)
-        for i, s in enumerate(selected_img, 0):
-            s = np.array(s)
-            np.save(join(f, f'img_{i}.npy'), s)    
-
-
-def read_folder1(folder):
-    # there are three modalities: ADC, DWI, and T2W
-    t2w = read_nii(join(folder, 'T2W.nii.gz'))
-    
-    t2w = preprocess(t2w)
-    
-    combined_img = np.concatenate((t2w, t2w, t2w), axis=-1)
-    
-    mask = read_nii(join(folder, 'Con_gt.nii.gz'))
-    
-    return combined_img, mask   
-
-def generate_image1():
-    folders = glob(join(ROOT, 'processed_data', '*'))
-    for f in tqdm(folders):
-        img, mask = read_folder1(f)
-        selected_img = crop_roi(img, mask)
-        for i, s in enumerate(selected_img, 0):
-            s = np.array(s)
-            np.save(join(f, f'img_{i}1.npy'), s)    
+        for id_ in selected_img.keys():
+            for i, s in enumerate(selected_img[id_], 0):
+                s = np.array(s)
+                np.save(join(f, f'IMAGE_{id_-1}_{i}.npy'), s)     
 
 def map_label(x):
     if x == 0:
@@ -177,7 +181,7 @@ def write_csv():
         f.write(json.dumps(js, indent=4))  
     
 def complete_csv():
-    img_dirs = glob(join(ROOT, 'processed_data', '*', '*.npy'))
+    img_dirs = glob(join(ROOT, 'processed_data', '*', 'IMAGE*.npy'))
     info_csv = pd.read_csv(join(ROOT, 'PAIs_Details_and_Labels_send2AIteam_updated20231001.csv'))
     
     df = pd.read_csv(join(ROOT, 'data.csv'))
@@ -198,7 +202,9 @@ def complete_csv():
     subject_ids = []
     for img_dir in tqdm(img_dirs):
         subject_id = PurePath(img_dir).parts[-2]
-        lesion_id = subject_id + '_1'
+        # lesion_id = subject_id + '_1'
+        id_ = int(PurePath(img_dir).parts[-1].split('_')[1])
+        lesion_id = subject_id + f'_{id_}'
         subject_ids.append(subject_id)
         for c in columns:
             column_values[c].append(df[df['Prostate_AI_LesionID']==lesion_id][c].values[0])
@@ -230,44 +236,48 @@ def split_data():
     train_ratio = 0.6
     test_ratio = 0.2 # val_ratio = 0.2
     
-    train_subject = []
-    val_subject = []
-    test_subject = []
-    # there are three labels, {0, 1, 2}
-    # for label==0
-    subject_id = np.array(list(set(df[df['label']==0]['SubjectID'].values))) 
-    indices = list(range(len(subject_id)))
-    np.random.shuffle(indices)
-    train_inds_ = indices[:int(train_ratio*len(subject_id))]
-    test_inds_ = indices[int(train_ratio*len(subject_id)):int((train_ratio + test_ratio)*len(subject_id))]
-    val_inds_ = indices[int((train_ratio + test_ratio)*len(subject_id)):]
-    train_subject = list(subject_id[train_inds_]) + train_subject
-    val_subject = list(subject_id[val_inds_]) + val_subject
-    test_subject = list(subject_id[test_inds_]) + test_subject
+    # train_subject = []
+    # val_subject = []
+    # test_subject = []
+    # # there are three labels, {0, 1, 2}
+    # # for label==0
+    # subject_id = np.array(list(set(df[df['label']==0]['SubjectID'].values))) 
+    # indices = list(range(len(subject_id)))
+    # np.random.shuffle(indices)
+    # train_inds_ = indices[:int(train_ratio*len(subject_id))]
+    # test_inds_ = indices[int(train_ratio*len(subject_id)):int((train_ratio + test_ratio)*len(subject_id))]
+    # val_inds_ = indices[int((train_ratio + test_ratio)*len(subject_id)):]
+    # train_subject = list(subject_id[train_inds_]) + train_subject
+    # val_subject = list(subject_id[val_inds_]) + val_subject
+    # test_subject = list(subject_id[test_inds_]) + test_subject
 
-    # for label==1
-    subject_id = np.array(list(set(df[df['label']==1]['SubjectID'].values))) 
-    indices = list(range(len(subject_id)))
-    np.random.shuffle(indices)
-    train_inds_ = indices[:int(train_ratio*len(subject_id))]
-    test_inds_ = indices[int(train_ratio*len(subject_id)):int((train_ratio + test_ratio)*len(subject_id))]
-    val_inds_ = indices[int((train_ratio + test_ratio)*len(subject_id)):]
-    train_subject = list(subject_id[train_inds_]) + train_subject
-    val_subject = list(subject_id[val_inds_]) + val_subject
-    test_subject = list(subject_id[test_inds_]) + test_subject
+    # # for label==1
+    # subject_id = np.array(list(set(df[df['label']==1]['SubjectID'].values))) 
+    # indices = list(range(len(subject_id)))
+    # np.random.shuffle(indices)
+    # train_inds_ = indices[:int(train_ratio*len(subject_id))]
+    # test_inds_ = indices[int(train_ratio*len(subject_id)):int((train_ratio + test_ratio)*len(subject_id))]
+    # val_inds_ = indices[int((train_ratio + test_ratio)*len(subject_id)):]
+    # train_subject = list(subject_id[train_inds_]) + train_subject
+    # val_subject = list(subject_id[val_inds_]) + val_subject
+    # test_subject = list(subject_id[test_inds_]) + test_subject
     
-    # for label==2
-    subject_id = np.array(list(set(df[df['label']==2]['SubjectID'].values))) 
-    indices = list(range(len(subject_id)))
-    np.random.shuffle(indices)
-    train_inds_ = indices[:int(train_ratio*len(subject_id))]
-    test_inds_ = indices[int(train_ratio*len(subject_id)):int((train_ratio + test_ratio)*len(subject_id))]
-    val_inds_ = indices[int((train_ratio + test_ratio)*len(subject_id)):]
-    train_subject = list(subject_id[train_inds_]) + train_subject
-    val_subject = list(subject_id[val_inds_]) + val_subject
-    test_subject = list(subject_id[test_inds_]) + test_subject
+    # # for label==2
+    # subject_id = np.array(list(set(df[df['label']==2]['SubjectID'].values))) 
+    # indices = list(range(len(subject_id)))
+    # np.random.shuffle(indices)
+    # train_inds_ = indices[:int(train_ratio*len(subject_id))]
+    # test_inds_ = indices[int(train_ratio*len(subject_id)):int((train_ratio + test_ratio)*len(subject_id))]
+    # val_inds_ = indices[int((train_ratio + test_ratio)*len(subject_id)):]
+    # train_subject = list(subject_id[train_inds_]) + train_subject
+    # val_subject = list(subject_id[val_inds_]) + val_subject
+    # test_subject = list(subject_id[test_inds_]) + test_subject
+    
+    train_subject = ['PAIs088', 'PAIs155', 'PAIs137', 'PAIs062', 'PAIs198', 'PAIs197', 'PAIs105', 'PAIs037', 'PAIs036', 'PAIs015', 'PAIs163', 'PAIs120', 'PAIs066', 'PAIs109', 'PAIs058', 'PAIs003', 'PAIs194', 'PAIs095', 'PAIs237', 'PAIs218', 'PAIs042', 'PAIs230', 'PAIs229', 'PAIs239', 'PAIs192', 'PAIs183', 'PAIs231', 'PAIs113', 'PAIs168', 'PAIs226', 'PAIs150', 'PAIs047', 'PAIs020', 'PAIs243', 'PAIs084', 'PAIs209', 'PAIs177', 'PAIs070', 'PAIs002', 'PAIs221', 'PAIs054', 'PAIs078', 'PAIs025', 'PAIs077', 'PAIs202', 'PAIs242', 'PAIs039', 'PAIs188', 'PAIs206', 'PAIs141', 'PAIs135', 'PAIs189', 'PAIs140', 'PAIs125', 'PAIs012', 'PAIs184', 'PAIs191', 'PAIs063', 'PAIs080', 'PAIs075', 'PAIs139', 'PAIs101', 'PAIs061', 'PAIs208', 'PAIs114', 'PAIs187', 'PAIs228', 'PAIs116', 'PAIs123', 'PAIs064', 'PAIs145', 'PAIs014', 'PAIs224', 'PAIs072', 'PAIs013', 'PAIs149', 'PAIs083', 'PAIs074', 'PAIs124', 'PAIs005', 'PAIs166', 'PAIs179', 'PAIs016', 'PAIs096', 'PAIs151', 'PAIs121', 'PAIs028', 'PAIs157', 'PAIs052', 'PAIs159', 'PAIs240', 'PAIs048', 'PAIs007', 'PAIs085', 'PAIs073', 'PAIs051', 'PAIs153', 'PAIs112', 'PAIs093', 'PAIs108', 'PAIs147', 'PAIs204', 'PAIs217', 'PAIs185', 'PAIs033', 'PAIs098', 'PAIs090', 'PAIs067', 'PAIs180', 'PAIs094', 'PAIs173', 'PAIs010', 'PAIs154', 'PAIs215', 'PAIs110', 'PAIs017', 'PAIs238', 'PAIs174', 'PAIs142', 'PAIs035', 'PAIs162', 'PAIs213', 'PAIs055']
+    val_subject = ['PAIs210', 'PAIs212', 'PAIs006', 'PAIs170', 'PAIs057', 'PAIs022', 'PAIs103', 'PAIs225', 'PAIs118', 'PAIs169', 'PAIs146', 'PAIs068', 'PAIs175', 'PAIs060', 'PAIs129', 'PAIs236', 'PAIs021', 'PAIs195', 'PAIs069', 'PAIs126', 'PAIs071', 'PAIs167', 'PAIs099', 'PAIs176', 'PAIs127', 'PAIs164', 'PAIs027', 'PAIs128', 'PAIs031', 'PAIs018', 'PAIs019', 'PAIs026', 'PAIs241', 'PAIs024', 'PAIs030', 'PAIs223', 'PAIs148', 'PAIs138', 'PAIs152', 'PAIs220', 'PAIs029', 'PAIs050']
+    test_subject = ['PAIs160', 'PAIs107', 'PAIs046', 'PAIs011', 'PAIs232', 'PAIs065', 'PAIs219', 'PAIs199', 'PAIs165', 'PAIs001', 'PAIs004', 'PAIs053', 'PAIs214', 'PAIs038', 'PAIs156', 'PAIs076', 'PAIs043', 'PAIs045', 'PAIs201', 'PAIs130', 'PAIs082', 'PAIs161', 'PAIs040', 'PAIs056', 'PAIs222', 'PAIs171', 'PAIs136', 'PAIs117', 'PAIs131', 'PAIs143', 'PAIs091', 'PAIs115', 'PAIs059', 'PAIs132', 'PAIs086', 'PAIs104', 'PAIs182', 'PAIs044', 'PAIs009', 'PAIs158', 'PAIs032']
 
-    subject_id = np.array(subject_id)
+    # subject_id = np.array(subject_id)
     
     def split(x):
         if x in train_subject:
@@ -293,5 +303,4 @@ if __name__ == "__main__":
     # check_columns()
     # write_csv()
     # complete_csv()
-    # split_data()
-    generate_image1()
+    split_data()

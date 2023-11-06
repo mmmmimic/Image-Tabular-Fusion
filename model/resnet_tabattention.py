@@ -69,7 +69,7 @@ class BasicBlock(nn.Module):
             out = torch.permute(out, (0, 1, 3, 4, 2))
             out = self.cbam_layer(out, tab)
             out = torch.permute(out, (0, 1, 4, 2, 3))
-            out = out.squeeze()
+            out = out.squeeze(2)
 
         out = self.conv2(out)
 

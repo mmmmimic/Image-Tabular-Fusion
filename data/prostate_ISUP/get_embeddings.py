@@ -317,13 +317,13 @@ def pubmed_cell():
     np.save('pubmedclip_cell_test.npy', embs)
 
 if __name__ == "__main__":
-    # onehot_noaug()
-    # text_cell()
-    # text_tab_clip()
+    onehot_noaug()
+    text_cell()
+    text_tab_clip()
     text_cell_context()
-    # text_gpt()
-    pubmed_cell_context()
-    pubmed_cell()
-    pubmed_gpt()
+    text_gpt()
+    # pubmed_cell_context()
+    # pubmed_cell()
+    # pubmed_gpt()
     
     

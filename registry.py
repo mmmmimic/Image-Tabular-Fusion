@@ -15,12 +15,20 @@ MODEL = {
     'film': FilmHNN,
     'daft': DAFT,
     'ppnet': PPNet,
-    'tabattn': ResNetTabAttention
+    'tabattn': ResNetTabAttention,
+    'clip_resnet50_dvm': clip_resnet50_dvm,
+    'mmdynamic': MMDynamicModel,
+    'trimodal': TriModalModel
 } 
 
+class MM_Loss():
+    def __call__(self, x):
+        return x['loss']
+    
 LOSS = {
     'cse': nn.CrossEntropyLoss,
-    'bce': nn.BCEWithLogitsLoss
+    'bce': nn.BCEWithLogitsLoss,
+    'mmdynamic': MM_Loss
 }
 
 METRICS = {
@@ -42,7 +50,8 @@ DATASET = {
     'mug': MUG, 
     'preload_mug': MUGPre,
     'isup': ISUP,
-    'preload_isup': ISUPPre
+    'preload_isup': ISUPPre,
+    'preload_mug_tri': MUGTriPre
 }
 
 Embedder = {

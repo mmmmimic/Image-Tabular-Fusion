@@ -38,7 +38,7 @@ data:
         ])"
         test_augs: ""
     modal: ['img', 'tab']
-    kwd: clip_context
+    kwd: clip_tab
 
 model:
   name: mm
@@ -51,7 +51,7 @@ model:
     tab_emb_dim: 1024
     num_classes: 2
     feat_dim: 1024
-    fusion: attn
+    fusion: cat
     image_encoder: rn50_clip_res
     tab_encoder: identical
 

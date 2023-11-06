@@ -18,7 +18,7 @@ train:
   seed: 2023 # -1 for not fixing random seede
    
 data:
-  dataset: preload_mug
+  dataset: preload_mug_tri
   config:
     transforms:
       tabular:
@@ -38,23 +38,22 @@ data:
         ])"
         test_augs: ""
     modal: ['tab', 'img']
-    kwd: clip_cell
-    root_dir: /home/lmx/Image-Tabular-Fusion/data/mug_dataset/Hearthstone-Minion-race
+    root_dir: data/mug_dataset/LeagueOfLegends-Skin-category/
 
 model:
-  name: mm
+  name: trimodal
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: dict # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    tab_emb_dim: 1024
-    num_classes: 16
+    tab_emb_dim: 73
+    num_classes: 7
     feat_dim: 1024
-    fusion: attn
-    image_encoder: rn50_clip_res
-    tab_encoder: identical
+    fusion: cat
+    image_encoder: rn50_clip
+    tab_encoder: mlp
 
 
     

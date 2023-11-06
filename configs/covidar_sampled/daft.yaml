@@ -1,8 +1,8 @@
 train:
   batch_size: 32
   num_epochs: 15
-  lr: 0.0000005
-  weight_decay: 0.001
+  lr: 0.000001
+  weight_decay: 0.0001
   warmup_steps: 100 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
   resampling: True # True if sample number is considerably imbalanced among categories 
@@ -38,22 +38,21 @@ data:
         ])"
         test_augs: ""
     modal: ['img', 'tab']
-    kwd: clip_context
+    kwd: onehot_noaug
+    sample: True
 
 model:
-  name: mm
+  name: daft
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: dict # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    tab_emb_dim: 1024
-    num_classes: 2
-    feat_dim: 1024
-    fusion: attn
-    image_encoder: rn50_clip_res
-    tab_encoder: identical
+    in_channels: 3
+    n_outputs: 2
+    filmblock_args: 
+      ndim_non_img: 33
 
 
     

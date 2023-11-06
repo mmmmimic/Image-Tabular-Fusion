@@ -82,9 +82,13 @@ class AttentivePooling(nn.Module):
 
     def forward(self, x):
         # x.shape = batch_size, seq_len, hidden_dim
-        x = self.encoder_layer(x) # feature interaction between different modalities
+        x0 = x.clone()
+        x = self.encoder_layer(x) + x0 # feature interaction between different modalities
         attention_weights = self.attention(x)  # batch_size, seq_len, 
         attention_weights = torch.softmax(attention_weights, dim=1)
+        # for b in range(attention_weights.size(0)):
+        #     print(attention_weights[b,...])
+        # sys.exit()
         output = attention_weights * x  # batch_size, seq_len, hidden_dim
         output = output.sum(dim=1)  # batch_size, hidden_dim
         return output

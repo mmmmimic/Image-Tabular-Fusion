@@ -1,14 +1,32 @@
-from model import ResNetTabAttention
-import torch
+import numpy as np
+import pandas as pd
+from sklearn.metrics import accuracy_score
+from pathlib import PurePath
 
-model = ResNetTabAttention((224, 224),
-                           n_frames=1,
-                           n_tab=6)
-x = torch.randn(8, 3, 128, 128)
-tab = torch.randn(8, 6)
-model = ResNetTabAttention(input_size=(x.shape[-2], x.shape[-1]), 
-                           n_frames=1, n_tab=tab.shape[-1],
-                           num_classes=10
-                           )
-print(model)
-print(model(x, tab).shape)
+df = pd.read_csv('/home/lmx/Image-Tabular-Fusion/data/prostate_ISUP/data_full.csv')
+df = df[df['split']=='test']
+df = df.reset_index()
+print(len(df))
+prob = np.load('tmp1.npy')
+# subject = list(set(df['SubjectID'].values))
+image_ids = list(map(lambda x: int(PurePath(x).parts[-1].split('_')[1]), df['Image_DIR'].values))
+subject = df['SubjectID'].values
+lesion = []
+for i in range(len(subject)):
+    lesion.append(subject[i] + f'_{image_ids[i]}')
+df['LesionID'] = lesion
+lesion = list(set(lesion))
+
+preds = []
+gts = []
+for s in lesion:
+    p = prob[df[df['LesionID']==s].index.values, :]
+    p = p.mean(axis=0)
+    p = np.argmax(p)
+    preds.append(p)
+    gts.append(df[df['LesionID']==s]['label'].values[0])
+
+print(accuracy_score(gts, preds))
+
+# image patient acc: 53.66
+# gpt patient acc: 60.98

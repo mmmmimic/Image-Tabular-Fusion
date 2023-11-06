@@ -8,6 +8,7 @@ from .modules import AttentivePooling
 from .llm import clip_bert
 from .resnet import clip_resnet50_encoder, medclip_resnet50_encoder , pubmedclip_resnet50_encoder
 from .vit import clip_vit_b_32_encoder
+from .mmdynamics import MMDynamic
 
 class MultimodalModel(nn.Module):
     def __init__(self, tab_emb_dim, num_classes, feat_dim = 1024, fusion='cat', 
@@ -59,9 +60,9 @@ class MultimodalModel(nn.Module):
             self.fuse = lambda x, y: x * y
         
         elif self.fusion == 'attn':
-            self.fused_dim = self.feat_dim
-            self.attentive_pool = AttentivePooling(self.feat_dim)
-            self.fuse = lambda x, y: self.attentive_pool(torch.cat((x.view(x.size(0), -1, x.size(-1)), y.view(y.size(0), -1, y.size(-1))), dim=1))
+            self.fused_dim = self.feat_dim*2
+            self.attentive_pool = AttentivePooling(self.feat_dim*2)
+            self.fuse = lambda x, y: self.attentive_pool(torch.cat((x.view(x.size(0), -1, x.size(-1)).repeat(1, y.size(1), 1), y.view(y.size(0), -1, y.size(-1))), dim=-1))        
         
         else:
             raise NotImplementedError      
@@ -142,7 +143,8 @@ class MultimodalModel(nn.Module):
         image_feat = self.encode_image(image)
         
         fused_feat = self.fuse(image_feat, tab_feat)
-        
+        # fused_feat = self.attentive_pool(tab_feat) 
+
         logit = self.classifier(fused_feat)
         
         return logit
@@ -176,7 +178,48 @@ class ResMultimodalModel(MultimodalModel):
         logit = self.classifier(fused_feat)
         
         return logit        
-    
+ 
+ 
+class TriModalModel(MultimodalModel):
+    def __init__(self, tab_emb_dim, num_classes, feat_dim=1024, fusion='cat', image_encoder='rn50', tab_encoder='mlp', *args, **kwargs) -> None:
+        super().__init__(tab_emb_dim, num_classes, feat_dim, fusion, image_encoder, tab_encoder, frozen_tab=False, *args, **kwargs)
+        self.classifier = nn.Linear(3*1024, num_classes)
+        
+    def encode_tabline(self, embd):
+        embd = torch.nan_to_num(embd, nan=0.0) # if nan, replace it
+        return super().encode_tabline(embd)
+        
+    def forward(self, image, text, embd, *args, **kwargs):
+        # tab_line should include [clip_embeddings, onehot_embeddings, continous_embeddings]
+        tab_feat = self.encode_tabline(embd)
+        image_feat = self.encode_image(image)
+        
+        fused_feat = torch.cat((tab_feat, image_feat, text), dim=-1)
+        
+        logit = self.classifier(fused_feat)
+        
+        return logit   
+
+
+class MMDynamicModel(MultimodalModel):
+    def __init__(self, tab_emb_dim, num_classes, feat_dim = 1024, 
+                 fusion='cat', image_encoder='rn50', tab_encoder='mlp', 
+                 frozen_tab=True, *args, **kwargs) -> None:
+        super().__init__(tab_emb_dim, num_classes, feat_dim = 1024, 
+                 fusion='cat', image_encoder='rn50', tab_encoder='mlp', 
+                 frozen_tab=True, *args, **kwargs)
+        self.classifier = MMDynamic([feat_dim, feat_dim], [feat_dim], num_classes, 0.2)
+
+    def forward(self, tab_line, image, label, *args, **kwargs):
+        tab_feat = self.encode_tabline(tab_line)
+        image_feat = self.encode_image(image)
+
+        fused_feat = [tab_feat, image_feat]
+        
+        loss, logit = self.classifier(fused_feat, label)
+        
+        return {'loss': loss, 'logit': logit}    
+        
 # class DAFT(nn.Module):
 #     def __init__(self, tab_emb_dim, num_classes, *args, **kwargs) -> None:
 #         super().__init__(*args, **kwargs)
