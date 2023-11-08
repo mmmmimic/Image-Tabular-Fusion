@@ -77,20 +77,25 @@ class AttentivePooling(nn.Module):
     def __init__(self, hidden_dim):
         super(AttentivePooling, self).__init__()
         self.hidden_dim = hidden_dim
+        self.mha = nn.MultiheadAttention(hidden_dim, num_heads=1, batch_first=True)
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=8, batch_first=True)
+        self.fc = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU()
+        )
         self.attention = nn.Linear(hidden_dim, 1, bias=False)
 
     def forward(self, x):
         # x.shape = batch_size, seq_len, hidden_dim
-        x0 = x.clone()
-        x = self.encoder_layer(x) + x0 # feature interaction between different modalities
-        attention_weights = self.attention(x)  # batch_size, seq_len, 
-        attention_weights = torch.softmax(attention_weights, dim=1)
-        # for b in range(attention_weights.size(0)):
-        #     print(attention_weights[b,...])
-        # sys.exit()
-        output = attention_weights * x  # batch_size, seq_len, hidden_dim
-        output = output.sum(dim=1)  # batch_size, hidden_dim
+        image_emb = x[:,0,...]
+        tab_emb = x[:,1:,...]
+        tab_emb_attn, corr_weights = self.mha(tab_emb, image_emb.unsqueeze(1), image_emb.unsqueeze(1))
+        tab_emb = tab_emb + tab_emb_attn
+        x = self.encoder_layer(tab_emb)
+        attention_weights = self.attention(x)
+        tab_emb = self.fc(tab_emb)
+        output = attention_weights * tab_emb
+        output = torch.sum(output, dim=1)
         return output
 
 class GatedAttention(nn.Module):

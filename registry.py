@@ -18,7 +18,8 @@ MODEL = {
     'tabattn': ResNetTabAttention,
     'clip_resnet50_dvm': clip_resnet50_dvm,
     'mmdynamic': MMDynamicModel,
-    'trimodal': TriModalModel
+    'trimodal': TriModalModel,
+    'tabtransformer': tabtransformer
 } 
 
 class MM_Loss():
@@ -57,7 +58,8 @@ DATASET = {
 Embedder = {
     'onehot': OneHotEmbedder,
     'text': TextEmbedder,
-    'default': DefaultEmbedder
+    'default': DefaultEmbedder,
+    'split': SplitEmbedder
 }
 
 TABULAR_TRANSFORM = {

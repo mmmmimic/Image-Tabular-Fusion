@@ -32,7 +32,29 @@ class DefaultEmbedder:
       return {
                 'line_embd': line_embd.float()
                 }       
-    
+      
+class SplitEmbedder(DefaultEmbedder):
+  def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
+      '''
+      args
+          df: a pandas dataframe
+          meta: the meta information of the dataframe (column names, field length)
+          index: line index
+      '''
+      columns = filter(lambda x: meta_info[x]['type'] in ['continuous', 'categorical'], meta_info.keys())
+      cat = []
+      cont = []
+      for c in columns:
+        if meta_info[c]['type'] == 'continuous':
+          cont.append(df[c].values[index])
+        elif meta_info[c]['type'] == 'categorical':
+          cat.append(df[c].values[index])
+      cont = torch.tensor(np.array(cont)).float()
+      cat = torch.tensor(np.array(cat)).long()
+      return {
+                'line_embd': {'x_cont': cont, 'x_categ': cat}
+                }       
+      
 class OneHotEmbedder(DefaultEmbedder):
   def get_line(self, df: pd.DataFrame, meta_info: dict, index: int) -> np.ndarray:
         '''
