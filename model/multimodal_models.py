@@ -60,9 +60,10 @@ class MultimodalModel(nn.Module):
             self.fuse = lambda x, y: x * y
         
         elif self.fusion == 'attn':
-            self.fused_dim = self.feat_dim*2
-            self.attentive_pool = AttentivePooling(self.feat_dim*2)
-            self.fuse = lambda x, y: self.attentive_pool(torch.cat((x.view(x.size(0), -1, x.size(-1)).repeat(1, y.size(1), 1), y.view(y.size(0), -1, y.size(-1))), dim=-1))        
+            self.fused_dim = self.feat_dim
+            self.attentive_pool = AttentivePooling(self.feat_dim)
+            self.fuse = lambda x, y: self.attentive_pool(torch.cat((x.view(x.size(0), -1, x.size(-1)), 
+                                                                    y.view(y.size(0), -1, y.size(-1))), dim=1))        
         
         else:
             raise NotImplementedError      
@@ -143,7 +144,6 @@ class MultimodalModel(nn.Module):
         image_feat = self.encode_image(image)
         
         fused_feat = self.fuse(image_feat, tab_feat)
-        # fused_feat = self.attentive_pool(tab_feat) 
 
         logit = self.classifier(fused_feat)
         
