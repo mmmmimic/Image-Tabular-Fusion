@@ -13,7 +13,7 @@ from .mmdynamics import MMDynamic
 class MultimodalModel(nn.Module):
     def __init__(self, tab_emb_dim, num_classes, feat_dim = 1024, fusion='cat', 
                  image_encoder='rn50', tab_encoder='mlp', frozen_tab=True, 
-                 complex_classifier = False, 
+                 complex_classifier = False, nhead=1,
                  *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         '''
@@ -28,6 +28,7 @@ class MultimodalModel(nn.Module):
         self._build_tabular_encoder(tab_encoder)
 
         self.fusion = fusion
+        self.nhead = nhead
         self._init_fuser()
         
         if complex_classifier:
@@ -61,7 +62,7 @@ class MultimodalModel(nn.Module):
         
         elif self.fusion == 'attn':
             self.fused_dim = self.feat_dim
-            self.attentive_pool = AttentivePooling(self.feat_dim)
+            self.attentive_pool = AttentivePooling(self.feat_dim, nhead=self.nhead)
             self.fuse = lambda x, y: self.attentive_pool(torch.cat((x.view(x.size(0), -1, x.size(-1)), 
                                                                     y.view(y.size(0), -1, y.size(-1))), dim=1))        
         
@@ -178,8 +179,7 @@ class ResMultimodalModel(MultimodalModel):
         logit = self.classifier(fused_feat)
         
         return logit        
- 
- 
+  
 class TriModalModel(MultimodalModel):
     def __init__(self, tab_emb_dim, num_classes, feat_dim=1024, fusion='cat', image_encoder='rn50', tab_encoder='mlp', *args, **kwargs) -> None:
         super().__init__(tab_emb_dim, num_classes, feat_dim, fusion, image_encoder, tab_encoder, frozen_tab=False, *args, **kwargs)
@@ -199,7 +199,6 @@ class TriModalModel(MultimodalModel):
         logit = self.classifier(fused_feat)
         
         return logit   
-
 
 class MMDynamicModel(MultimodalModel):
     def __init__(self, tab_emb_dim, num_classes, feat_dim = 1024, 

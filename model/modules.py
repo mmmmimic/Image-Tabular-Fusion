@@ -74,28 +74,37 @@ class DenseLayer(nn.Module):
         return x
 
 class AttentivePooling(nn.Module):
-    def __init__(self, hidden_dim):
+    def __init__(self, hidden_dim, nhead=1):
         super(AttentivePooling, self).__init__()
         self.hidden_dim = hidden_dim
-        self.mha = nn.MultiheadAttention(hidden_dim, num_heads=1, batch_first=True)
-        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=8, batch_first=True)
+        self.linear_mapping_img = nn.Linear(hidden_dim, 128, bias=False)
+        self.linear_mapping_tab = nn.Linear(hidden_dim, 128, bias=False)
+        self.encoder_layer = nn.TransformerEncoderLayer(d_model=hidden_dim, nhead=nhead, batch_first=True)
         self.fc = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU()
-        )
+                    nn.Conv1d(hidden_dim, hidden_dim, 1),
+                    nn.BatchNorm1d(hidden_dim),
+                    nn.ReLU()
+                    )
         self.attention = nn.Linear(hidden_dim, 1, bias=False)
-
+        
     def forward(self, x):
         # x.shape = batch_size, seq_len, hidden_dim
+        # corr_weights means the correspondence between imaging and tabular data
+        # attention_weights means the importance of the fused imaging and tabular data
         image_emb = x[:,0,...]
         tab_emb = x[:,1:,...]
-        tab_emb_attn, corr_weights = self.mha(tab_emb, image_emb.unsqueeze(1), image_emb.unsqueeze(1))
-        tab_emb = tab_emb + tab_emb_attn
-        x = self.encoder_layer(tab_emb)
+        image_proj = self.linear_mapping_img(image_emb.unsqueeze(1)).transpose(1,2)
+        tab_proj = self.linear_mapping_tab(tab_emb)
+        corr = torch.bmm(tab_proj, image_proj)
+        corr_weights = torch.softmax(corr, dim=1)*tab_emb.size(1)
+        tab_emb = tab_emb + image_emb.unsqueeze(1)*corr_weights # fusion of imaging and tabular features
+        
+        x = self.encoder_layer(tab_emb) + tab_emb + image_emb.unsqueeze(1)
         attention_weights = self.attention(x)
-        tab_emb = self.fc(tab_emb)
-        output = attention_weights * tab_emb
-        output = torch.sum(output, dim=1)
+        attention_weights = torch.sigmoid(attention_weights)
+        
+        tab_emb = self.fc(tab_emb.transpose(1,2)).transpose(1,2)
+        output = torch.bmm(attention_weights.transpose(1, 2), tab_emb).squeeze(1)
         return output
 
 class GatedAttention(nn.Module):

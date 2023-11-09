@@ -37,7 +37,8 @@ METRICS = {
         'avg_acc': avg_accuracy,
         'auc': auc,
         'acc@3': top3_accuracy,
-        'acc@5': top5_accuracy
+        'acc@5': top5_accuracy,
+        'f1': f1
 }
 
 DATASET = {

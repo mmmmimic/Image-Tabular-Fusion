@@ -18,12 +18,12 @@ train:
   seed: 2023 # -1 for not fixing random seed
    
 data:
-  dataset: preload_isup
+  dataset: isup
   config:
     numerical: True
-    preload_images: False 
+    cache_images: False 
     tab_embedder:
-      name: onehot
+      name: split
       config: {} 
     transforms:
       tabular:
@@ -33,33 +33,22 @@ data:
         train_shape: [224, 224]
         test_shape: [224, 224]
         norm: True
-        aug_rate: 0.95
-        train_augs: "T.Compose([ \
-        T.RandomResizedCrop(size=(224, 224), scale=(0.2, 1.0), ratio=(0.75, 1.3333)), \
-        T.RandomHorizontalFlip(p=0.5), \
-        T.RandomGrayscale(p=0.2), \ 
-        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5)
-        ])"
+        aug_rate: 1
+        train_augs: ""
         test_augs: ""
-    modal: ['img', 'tab']
-    kwd: 'onehot_noaug'
+    modal: ['tab']
 
 model:
-  name: mm
+  name: tabtransformer
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: dict # (tensor) | (dict)
     model_output: tensor # (tensor) | (dict)
-    kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
+    kwd: '' # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
-    tab_emb_dim: 21
-    num_classes: 3
-    feat_dim: 1024
-    fusion: cat
-    image_encoder: rn50_clip
-    tab_encoder: mlp
-    frozen_tab: False
-    complex_classifier: False
-
+    categories: [3, 3, 4]
+    num_continuous: 11
+    dim: 1024
+    dim_out: 3
 
     

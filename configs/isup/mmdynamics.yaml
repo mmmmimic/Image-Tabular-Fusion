@@ -11,7 +11,7 @@ train:
   mode: accum # (accum, avg), if the dataset is too large, set to avg to run AverageMeter over batches
   metric_names: ['acc', 'avg_acc'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
   criterion: # specify cost function
-    cse: 
+    mmdynamic: 
       weight: 1
       config: {}
   monitor_metric: acc
@@ -45,11 +45,11 @@ data:
     kwd: 'onehot_noaug'
 
 model:
-  name: mm
+  name: mmdynamic
   wrapper:
     wrapper_input: dict # (tuple) | (dict)
     model_input: dict # (tensor) | (dict)
-    model_output: tensor # (tensor) | (dict)
+    model_output: dict # (tensor) | (dict)
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
     tab_emb_dim: 21
@@ -59,7 +59,6 @@ model:
     image_encoder: rn50_clip
     tab_encoder: mlp
     frozen_tab: False
-    complex_classifier: False
 
 
     
