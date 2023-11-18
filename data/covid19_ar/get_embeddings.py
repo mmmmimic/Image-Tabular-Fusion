@@ -7,11 +7,11 @@ from tqdm import tqdm
 
 
 # add embedder into path
-sys.path.append('/research/d1/rshr/mxlin/Image-Tabular-Fusion/data')
-from tabular_utils import OneHotEmbedder, TextEmbedder
+sys.path.append('..')
+from tabular_utils import OneHotEmbedder, TextEmbedder, DefaultEmbedder
 from dataset import COVID19AR
 from os.path import join
-ROOT = '/research/d1/rshr/mxlin/Image-Tabular-Fusion/data/covid19_ar'
+ROOT = '.'
 
 def get_all(dataset, batch_size):
     lines = []
@@ -177,10 +177,35 @@ def text_tab_clip():
     embs = clip_get_tab(trainset, batch_size=32)
     np.save('clip_tab_test.npy', embs)
 
+def text_logit():
+    # text, tabwise, roberta, no augmentation
+    tab_transform = lambda x, y: y
+    transforms = {
+        'tab_tf': tab_transform
+    }
+    trainset = COVID19AR(split='train', transforms=transforms, numerical=True, 
+                tab_embedder=DefaultEmbedder(), preload_images=False, 
+                root_dir=ROOT, modal=['tab'])
+    embs = get_all(trainset, batch_size=32)
+    np.save('logit_train.npy', embs)
+
+    trainset = COVID19AR(split='val', transforms=transforms, numerical=True, 
+                tab_embedder=DefaultEmbedder(), preload_images=False, 
+                root_dir=ROOT, modal=['tab'])
+    embs = get_all(trainset, batch_size=32)
+    np.save('logit_val.npy', embs)
+    
+    trainset = COVID19AR(split='test', transforms=transforms, numerical=True, 
+                tab_embedder=DefaultEmbedder(), preload_images=False, 
+                root_dir=ROOT, modal=['tab'])
+    embs = get_all(trainset, batch_size=32)
+    np.save('logit_test.npy', embs)
+
 if __name__ == "__main__":
-    onehot_noaug()
-    text_cell()
-    text_tab_clip()
-    text_gpt()
-    text_cell_context()
+    # onehot_noaug()
+    # text_cell()
+    # text_tab_clip()
+    # text_gpt()
+    # text_cell_context()
+    text_logit()
     

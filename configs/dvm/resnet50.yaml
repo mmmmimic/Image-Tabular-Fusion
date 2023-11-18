@@ -1,10 +1,10 @@
 train:
-  batch_size: 32
-  num_epochs: 200
+  batch_size: 512
+  num_epochs: 100
   lr: 0.0001
   weight_decay: 0.00001
-  warmup_steps: 1000 # 0 if activating reduceonplateau
-  optimizer_type: adamw # (sgd, adam, adamw)
+  warmup_steps: 0 # 0 if activating reduceonplateau
+  optimizer_type: adam # (sgd, adam, adamw)
   resampling: False # True if sample number is considerably imbalanced among categories 
   device: cuda # (cuda, cpu)
   accum_step: 1 # >1 means gradient accumulation over iterations

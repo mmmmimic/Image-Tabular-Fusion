@@ -13,8 +13,8 @@ from transformers import RobertaModel, RobertaTokenizer
 
 # add embedder into path
 sys.path.append('/home/lmx/Image-Tabular-Fusion/data')
-from tabular_utils import OneHotEmbedder, TextEmbedder, Scarf, RandomMask
-from dataset import DVMLow
+from tabular_utils import OneHotEmbedder, TextEmbedder, Scarf, RandomMask, DefaultEmbedder
+from dataset import DVMLow, DVM
 
 def get_all(dataset, batch_size):
     lines = []
@@ -174,15 +174,70 @@ def text_tab_clip001():
     embs = clip_get_tab(trainset, batch_size=32)
     np.save('clip_tab001_train.npy', embs)
             
+            
+def text_logit01():
+    # text, tabwise, roberta, no augmentation
+    tab_transform = lambda x, y: y
+    transforms = {
+        'tab_tf': tab_transform
+    }
+    trainset = DVMLow(split='train', transforms=transforms, numerical=True, 
+                tab_embedder=DefaultEmbedder(), preload_images=False, 
+                root_dir='/home/lmx/Image-Tabular-Fusion/data/dvm_car', modal=['tab'], ratio=0.1)
+    embs = get_all(trainset, batch_size=32)
+    np.save('logit01_train.npy', embs)
+
+    trainset = DVMLow(split='val', transforms=transforms, numerical=True, 
+                tab_embedder=DefaultEmbedder(), preload_images=False, 
+                root_dir='/home/lmx/Image-Tabular-Fusion/data/dvm_car', modal=['tab'], ratio=0.1)
+    embs = get_all(trainset, batch_size=32)
+    np.save('logit01_val.npy', embs)
+    
+    trainset = DVMLow(split='test', transforms=transforms, numerical=True, 
+                tab_embedder=DefaultEmbedder(), preload_images=False, 
+                root_dir='/home/lmx/Image-Tabular-Fusion/data/dvm_car', modal=['tab'], ratio=0.1)
+    embs = get_all(trainset, batch_size=32)
+    np.save('logit01_test.npy', embs)
+    
+    
+    
+def text_gpt(idd=1):
+    # text, gpt template, no augmentation
+    tab_transform = lambda x, y: y
+    transforms = {
+        'tab_tf': tab_transform
+    } 
+    trainset = DVMLow(split='train', transforms=transforms, numerical=False, 
+                tab_embedder=TextEmbedder(cellwise=False, model='clip', chatgpt_tmpl=f'/home/lmx/Image-Tabular-Fusion/data/dvm_car/chatgpt_tmpl{idd}.txt'), preload_images=False, 
+                root_dir='/home/lmx/Image-Tabular-Fusion/data/dvm_car', modal=['tab'], ratio=0.1)
+    embs = clip_get_line(trainset, batch_size=32)
+    np.save(f'clip_gpt{idd}01_train.npy', embs)
+    
+    trainset = DVM(split='val', transforms=transforms, numerical=False, 
+                tab_embedder=TextEmbedder(cellwise=False, model='clip', chatgpt_tmpl=f'/home/lmx/Image-Tabular-Fusion/data/dvm_car/chatgpt_tmpl{idd}.txt'), preload_images=False, 
+                root_dir='/home/lmx/Image-Tabular-Fusion/data/dvm_car', modal=['tab'])
+    embs = clip_get_line(trainset, batch_size=32)
+    np.save(f'clip_gpt{idd}01_val.npy', embs)    
+
+    trainset = DVM(split='test', transforms=transforms, numerical=False, 
+                tab_embedder=TextEmbedder(cellwise=False, model='clip', chatgpt_tmpl=f'/home/lmx/Image-Tabular-Fusion/data/dvm_car/chatgpt_tmpl{idd}.txt'), preload_images=False, 
+                root_dir='/home/lmx/Image-Tabular-Fusion/data/dvm_car', modal=['tab'])
+    embs = clip_get_line(trainset, batch_size=32)
+    np.save(f'clip_gpt{idd}01_test.npy', embs)    
+    print(embs.shape)
+    
 if __name__ == "__main__":
-    onehot_noaug01()
-    onehot_noaug001()
-    text_cell01()
-    text_cell001()
-    text_cell_context01()
-    text_cell_context001()
-    text_gpt01()
-    text_gpt001()
-    text_tab_clip01()
-    text_tab_clip001()
+    # onehot_noaug01()
+    # onehot_noaug001()
+    # text_cell01()
+    # text_cell001()
+    # text_cell_context01()
+    # text_cell_context001()
+    # text_gpt01()
+    # text_gpt001()
+    # text_tab_clip01()
+    # text_tab_clip001()
+    # text_logit01()
+    for i in range(3, 5):
+        text_gpt(i)
     

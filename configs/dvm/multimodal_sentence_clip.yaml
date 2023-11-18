@@ -1,6 +1,6 @@
 train:
   batch_size: 32
-  num_epochs: 200
+  num_epochs: 100
   lr: 0.0001
   weight_decay: 0.00001
   warmup_steps: 1000 # 0 if activating reduceonplateau
@@ -40,9 +40,6 @@ data:
         T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5), \ 
         T.Resize(size=(224, 224))
         ])"
-        # train_augs: "
-        # T.Compose([T.RandomResizedCrop(size=(128, 128), scale=(0.08, 1.0), ratio=(0.75, 1.3333)), T.Resize(size=(224, 224)), T.CenterCrop(size=(224, 224))])
-        # "
         test_augs: "T.Compose([T.Resize(size=(128, 128)), \
                     T.Resize(size=(224, 224))])"
     modal: ['tab', 'img']
@@ -60,7 +57,7 @@ model:
     num_classes: 286
     feat_dim: 1024
     fusion: cat
-    image_encoder: rn50_clip
+    image_encoder: rn50_clip_res
     tab_encoder: identical
 
 
