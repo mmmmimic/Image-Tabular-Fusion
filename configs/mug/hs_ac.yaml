@@ -55,6 +55,7 @@ model:
     fusion: attn
     image_encoder: rn50_clip_res
     tab_encoder: identical
+    first_layer_finetune: True
 
 
     

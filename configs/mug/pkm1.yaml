@@ -1,8 +1,8 @@
 train:
-  batch_size: 32
-  num_epochs: 15
+  batch_size: 16
+  num_epochs: 20
   lr: 0.0001
-  weight_decay: 0.001
+  weight_decay: 0.00
   warmup_steps: 0 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
   resampling: False # True if sample number is considerably imbalanced among categories 
@@ -55,6 +55,8 @@ model:
     fusion: attn
     image_encoder: rn50_clip_res
     tab_encoder: identical
+    nhead: 8
+    first_layer_finetune: True
 
 
     

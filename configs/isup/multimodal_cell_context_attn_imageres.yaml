@@ -53,7 +53,8 @@ model:
     fusion: attn
     image_encoder: rn50_clip_res
     tab_encoder: identical
-    complex_classifier: True
+    complex_classifier: False
+    nhead: 4
 
 
     

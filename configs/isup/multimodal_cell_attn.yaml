@@ -37,7 +37,7 @@ data:
         ])"
         test_augs: ""
     modal: ['img', 'tab']
-    kwd: clip_cell
+    kwd: clip_context
 
 model:
   name: mm
@@ -53,7 +53,8 @@ model:
     fusion: attn
     image_encoder: rn50_clip
     tab_encoder: identical
-    complex_classifier: True
+    complex_classifier: False
+    nhead: 4
   
 
 

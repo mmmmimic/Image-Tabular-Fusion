@@ -59,7 +59,7 @@ model:
     image_encoder: rn50_clip
     tab_encoder: mlp
     frozen_tab: False
-    complex_classifier: True
+    complex_classifier: False
 
 
     

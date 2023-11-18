@@ -9,7 +9,7 @@ from medclip import MedCLIPModel, MedCLIPVisionModel
 
 # add embedder into path
 sys.path.append('/home/lmx/Image-Tabular-Fusion/data')
-from tabular_utils import OneHotEmbedder, TextEmbedder
+from tabular_utils import OneHotEmbedder, TextEmbedder, DefaultEmbedder
 from dataset import ISUP
 from os.path import join
 
@@ -316,14 +316,38 @@ def pubmed_cell():
     embs = pubmedclip_get_line(trainset, batch_size=32)
     np.save('pubmedclip_cell_test.npy', embs)
 
+def text_logit():
+    # text, tabwise, roberta, no augmentation
+    tab_transform = lambda x, y: y
+    transforms = {
+        'tab_tf': tab_transform
+    }
+    trainset = ISUP(split='train', transforms=transforms, numerical=True, 
+                tab_embedder=DefaultEmbedder(), preload_images=False, 
+                root_dir=ROOT, modal=['tab'])
+    embs = get_all(trainset, batch_size=32)
+    np.save('logit_train.npy', embs)
+
+    trainset = ISUP(split='val', transforms=transforms, numerical=True, 
+                tab_embedder=DefaultEmbedder(), preload_images=False, 
+                root_dir=ROOT, modal=['tab'])
+    embs = get_all(trainset, batch_size=32)
+    np.save('logit_val.npy', embs)
+    
+    trainset = ISUP(split='test', transforms=transforms, numerical=True, 
+                tab_embedder=DefaultEmbedder(), preload_images=False, 
+                root_dir=ROOT, modal=['tab'])
+    embs = get_all(trainset, batch_size=32)
+    np.save('logit_test.npy', embs)
+
 if __name__ == "__main__":
-    onehot_noaug()
-    text_cell()
-    text_tab_clip()
-    text_cell_context()
-    text_gpt()
+    # onehot_noaug()
+    # text_cell()
+    # text_tab_clip()
+    # text_cell_context()
+    # text_gpt()
     # pubmed_cell_context()
     # pubmed_cell()
     # pubmed_gpt()
-    
+    text_logit()
     

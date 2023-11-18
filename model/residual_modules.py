@@ -14,7 +14,7 @@ def zero_module(module):
     return module
 
 class ResidualConnection(nn.Module):
-    def __init__(self, main_branch, residual_branch, channel, dim, *args, **kwargs) -> None:
+    def __init__(self, main_branch, residual_branch, channel, dim, first_layer_finetune=False, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.main_branch = deepcopy(main_branch)
         self.residual_branch = deepcopy(residual_branch)
@@ -33,14 +33,54 @@ class ResidualConnection(nn.Module):
         
         self.zero_conv = zero_module(self.zero_conv)
         
+        self.first_layer_finetune = first_layer_finetune
+        if first_layer_finetune:
+            self.input_adapter = zero_module(nn.Conv2d(32, 32, 1))
+        
     def forward(self, x1, x2=None):
         if x2 is None:
             x2 = x1
+            
+        if self.first_layer_finetune:
+            x_ = self.input_adapter(self.residual_branch.conv1(x1))
+        
         with torch.no_grad():
             self.main_branch.eval()
-            x1 = self.main_branch(x1)
-        x2 = self.residual_branch(x2)
+            if self.first_layer_finetune:
+                x_ = x_ + self.main_branch.conv1(x1)
+                def stem(x):
+                    x = self.main_branch.relu1(self.main_branch.bn1(x))
+                    x = self.main_branch.relu2(self.main_branch.bn2(self.main_branch.conv2(x)))
+                    x = self.main_branch.relu3(self.main_branch.bn3(self.main_branch.conv3(x)))
+                    x = self.main_branch.avgpool(x)
+                    return x
+                x1 = stem(x_)
+                x1 = self.main_branch.layer1(x1)
+                x1 = self.main_branch.layer2(x1)
+                x1 = self.main_branch.layer3(x1)
+                x1 = self.main_branch.layer4(x1)
+                x1 = self.main_branch.attnpool(x1)
+            else:
+                x1 = self.main_branch(x1)
+
+        if self.first_layer_finetune:
+            def stem(x):
+                x = self.residual_branch.relu1(self.residual_branch.bn1(x))
+                x = self.residual_branch.relu2(self.residual_branch.bn2(self.residual_branch.conv2(x)))
+                x = self.residual_branch.relu3(self.residual_branch.bn3(self.residual_branch.conv3(x)))
+                x = self.residual_branch.avgpool(x)
+                return x
+            x2 = stem(x_)
+            x2 = self.residual_branch.layer1(x2)
+            x2 = self.residual_branch.layer2(x2)
+            x2 = self.residual_branch.layer3(x2)
+            x2 = self.residual_branch.layer4(x2)
+            x2 = self.residual_branch.attnpool(x2)
+        else:
+            x2 = self.residual_branch(x2)
+
         x3 = self.zero_conv(x2)
+
         if len(x1.shape) == 3:
             x3 = x3.unsqueeze(1)
         x4 = x3 + x1
