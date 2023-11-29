@@ -38,8 +38,7 @@ data:
         ])"
         test_augs: ""
     modal: ['img', 'tab']
-    kwd: clip_gpt
-    sample: True
+    kwd: clip_cell
 
 model:
   name: res_mm
@@ -56,9 +55,12 @@ model:
     image_encoder: rn50_clip_res
     tab_encoder: identical
     source_idx: [0,3,4,5,6,7,8,9,10,11,12,13,14,15]
-    target_idx: [0,1,1,1,2,3,3,4,4,5,6,6,6,0]
+    target_idx: [0,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    # source_idx: [12,13,14,15]
+    # target_idx: [12,13,14,15]
+    # source_idx: [0,3,4,5,6,7,8,9,10,11]
+    # target_idx: [0,3,4,5,6,7,8,9,10,11]
     nhead: 1
     zero_conv: True
-
 
     
