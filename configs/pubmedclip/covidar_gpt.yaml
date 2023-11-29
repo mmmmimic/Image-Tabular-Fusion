@@ -38,8 +38,8 @@ data:
         ])"
         test_augs: ""
     modal: ['img', 'tab']
-    kwd: clip_gpt
-    sample: True
+    kwd: pubmedclip_gpt
+    sample: False
 
 model:
   name: res_mm

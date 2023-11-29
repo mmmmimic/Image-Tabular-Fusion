@@ -231,6 +231,10 @@ def postprocess():
     splits = np.array(list(map(split, df['SUBJECT ID'])))
     df['SPLIT'] = splits
     
+    print(Counter(df[df['SPLIT']=='train']['LABEL'].values))
+    print(Counter(df[df['SPLIT']=='val']['LABEL'].values))
+    print(Counter(df[df['SPLIT']=='test']['LABEL'].values))
+    
     
     df.to_csv(join(ROOT_PATH, 'data_full.csv'), index=False)
     # with open(join(ROOT_PATH, 'meta.json'), 'w') as f:
@@ -261,39 +265,39 @@ def sample():
     
     # print(inds)
 
-def balance_sample():
-    df = pd.read_csv(join(ROOT_PATH, 'data_full.csv'))
-    seed = 2023
-    random.seed(seed)
-    np.random.seed(seed)
-    # sample 10% train data
+# def balance_sample():
+#     df = pd.read_csv(join(ROOT_PATH, 'data_full.csv'))
+#     seed = 2023
+#     random.seed(seed)
+#     np.random.seed(seed)
+#     # sample 10% train data
 
-    train_df = df[df['SPLIT']=='train']
-    val_df = df[df['SPLIT']=='val']
-    test_df = df[df['SPLIT']=='test']
+#     train_df = df[df['SPLIT']=='train']
+#     val_df = df[df['SPLIT']=='val']
+#     test_df = df[df['SPLIT']=='test']
     
-    # train
-    inds = []
-    num = 1
-    for s in list(set(train_df['SUBJECT ID'].values)):
-        inds.append(train_df[train_df['SUBJECT ID']==s].index.values[:num])
-    # for s in list(set(val_df['SUBJECT ID'].values)):
-    #     inds.append(val_df[val_df['SUBJECT ID']==s].index.values[:num])    
-    # for s in list(set(test_df['SUBJECT ID'].values)):
-    #     inds.append(test_df[test_df['SUBJECT ID']==s].index.values[:num])
-    inds = np.concatenate(inds, axis=0)
-    n_samples = len(inds)
-    print(n_samples)
+#     # train
+#     inds = []
+#     num = 1
+#     for s in list(set(train_df['SUBJECT ID'].values)):
+#         inds.append(train_df[train_df['SUBJECT ID']==s].index.values[:num])
+#     # for s in list(set(val_df['SUBJECT ID'].values)):
+#     #     inds.append(val_df[val_df['SUBJECT ID']==s].index.values[:num])    
+#     # for s in list(set(test_df['SUBJECT ID'].values)):
+#     #     inds.append(test_df[test_df['SUBJECT ID']==s].index.values[:num])
+#     inds = np.concatenate(inds, axis=0)
+#     n_samples = len(inds)
+#     print(n_samples)
     
-    print(inds)
+#     print(inds)
     
-    df = df.iloc[inds,:]
-    print(df)
-    print(Counter(df['SUBJECT ID'].values))
-    print(Counter(df['SPLIT'].values))
-    print(Counter(df['LABEL'].values))
+#     df = df.iloc[inds,:]
+#     print(df)
+#     print(Counter(df['SUBJECT ID'].values))
+#     print(Counter(df['SPLIT'].values))
+#     print(Counter(df['LABEL'].values))
     
-    # np.save(join(ROOT_PATH, 'balance_ind.npy'), np.array(inds))
+#     # np.save(join(ROOT_PATH, 'balance_ind.npy'), np.array(inds))
 
 
 if __name__ == "__main__":
@@ -307,7 +311,6 @@ if __name__ == "__main__":
     # processed_table_df = process_columns(table_df)
     # # analyse_columns(processed_table_df)
     # # wrapup(processed_table_df, png_dirs)
-    # postprocess()
-    # sample()
-    balance_sample()
+    postprocess()
+    sample()
     

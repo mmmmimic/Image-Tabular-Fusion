@@ -93,6 +93,7 @@ class AttentivePooling(nn.Module):
         # attention_weights means the importance of the fused imaging and tabular data
         image_emb = x[:,0,...]
         tab_emb = x[:,1:,...]
+
         image_proj = self.linear_mapping_img(image_emb.unsqueeze(1)).transpose(1,2)
         tab_proj = self.linear_mapping_tab(tab_emb)
         corr = torch.bmm(tab_proj, image_proj)

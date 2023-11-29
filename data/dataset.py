@@ -988,18 +988,18 @@ if __name__ == "__main__":
     }
     
     # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=DefaultEmbedder())
-    # trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder(cellwise=False, context = 'car', chatgpt_tmpl=None))
+    trainset = DVM(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder(cellwise=False, context = 'car', chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/dvm_car/chatgpt_tmpl.txt'))
     # trainset = DVM(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder())
     # trainset = COVID19AR(split='train', transforms=transforms, numerical=False, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/covid19_ar/chatgpt_tmpl.txt'))
     # trainset = MUG(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=True, context = None, chatgpt_tmpl=None)) 
-    trainset = ISUP(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/prostate_ISUP/chatgpt_tmpl.txt'))
+    # trainset = ISUP(split='train', transforms=transforms, tab_embedder=TextEmbedder(cellwise=False, context = None, chatgpt_tmpl='/home/lmx/Image-Tabular-Fusion/data/prostate_ISUP/chatgpt_tmpl.txt'))
     # trainset = DVMLow(split='train', transforms=transforms, numerical=True, tab_embedder=OneHotEmbedder(), ratio=0.01)
     data = trainset[0]
-    image = data['image']
-    tab_line = data['tab_line']
-    label = data['label']
-    print(tab_line, tab_line.shape, label, image.shape)
-    plt.figure()
-    plt.imshow(image.permute(1,2,0).numpy())
-    plt.show()
+    # image = data['image']
+    # tab_line = data['tab_line']
+    # label = data['label']
+    # print(tab_line, tab_line.shape, label, image.shape)
+    # plt.figure()
+    # plt.imshow(image.permute(1,2,0).numpy())
+    # plt.show()
     

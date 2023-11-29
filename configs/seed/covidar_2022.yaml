@@ -1,6 +1,6 @@
 train:
   batch_size: 32
-  num_epochs: 15
+  num_epochs: 25
   lr: 0.0000005
   weight_decay: 0.001
   warmup_steps: 100 # 0 if activating reduceonplateau
@@ -15,7 +15,7 @@ train:
       weight: 1
       config: {}
   monitor_metric: auc
-  seed: 2023 # -1 for not fixing random seed
+  seed: 2022 # -1 for not fixing random seed
    
 data:
   dataset: preloadres_covidar

@@ -1,24 +1,24 @@
 train:
-  batch_size: 32
-  num_epochs: 15
-  lr: 0.0000005
-  weight_decay: 0.001
-  warmup_steps: 100 # 0 if activating reduceonplateau
+  batch_size: 16
+  num_epochs: 20
+  lr: 0.0001
+  weight_decay: 0.00001
+  warmup_steps: 10 # 0 if activating reduceonplateau
   optimizer_type: adamw # (sgd, adam, adamw)
   resampling: True # True if sample number is considerably imbalanced among categories 
   device: cuda # (cuda, cpu)
   accum_step: 1 # >1 means gradient accumulation over iterations
   mode: accum # (accum, avg), if the dataset is too large, set to avg to run AverageMeter over batches
-  metric_names: ['acc', 'auc', 'avg_acc', 'f1'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
+  metric_names: ['acc', 'avg_acc'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
   criterion: # specify cost function
     cse: 
       weight: 1
       config: {}
-  monitor_metric: auc
-  seed: 2023 # -1 for not fixing random seed
+  monitor_metric: acc
+  seed: 2019 # -1 for not fixing random seed
    
 data:
-  dataset: preloadres_covidar
+  dataset: preloadres_isup
   config:
     transforms:
       tabular:
@@ -30,16 +30,14 @@ data:
         norm: True
         aug_rate: 0.95
         train_augs: "T.Compose([ \
-        T.Resize((224, 224)),
-        T.RandomResizedCrop(size=(224, 224), scale=(0.2, 1.0)), \
+        T.RandomResizedCrop(size=(224, 224), scale=(0.2, 1.0), ratio=(0.75, 1.3333)), \
         T.RandomHorizontalFlip(p=0.5), \
-        T.RandomRotation(degrees=45), \
-        T.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5), \
+        T.RandomGrayscale(p=0.2), \ 
+        T.RandomApply([T.GaussianBlur(kernel_size=(29, 29), sigma=(0.1, 2.0))], p=0.5)
         ])"
         test_augs: ""
     modal: ['img', 'tab']
     kwd: clip_gpt
-    sample: True
 
 model:
   name: res_mm
@@ -50,14 +48,15 @@ model:
     kwd:  # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
   config:
     tab_emb_dim: 1024
-    num_classes: 2
+    num_classes: 3
     feat_dim: 1024
     fusion: attn
     image_encoder: rn50_clip_res
     tab_encoder: identical
-    source_idx: [0,3,4,5,6,7,8,9,10,11,12,13,14,15]
-    target_idx: [0,1,1,1,2,3,3,4,4,5,6,6,6,0]
-    nhead: 1
+    complex_classifier: False
+    nhead: 4
+    source_idx: [3,4,5,6,7,8,9,10,11,12,13]
+    target_idx: [3,3,4,4,4,5,5,6,6,7,7]
     zero_conv: True
 
 
