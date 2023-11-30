@@ -154,6 +154,8 @@ dependencies:
       - darwin-py==0.8.34
       - defusedxml==0.7.1
       - deprecation==2.1.0
+      - einops==0.7.0
+      - et-xmlfile==1.1.0
       - fairseq==0.12.3
       - flatbuffers==23.5.26
       - fonttools==4.42.0
@@ -167,6 +169,7 @@ dependencies:
       - google-auth-oauthlib==1.0.0
       - google-pasta==0.2.0
       - googletrans==3.0.0
+      - gpt-2-simple==0.8.1
       - grad-cam==1.4.8
       - grpcio==1.58.0
       - gviz-api==1.10.0
@@ -214,6 +217,7 @@ dependencies:
       - onnx==1.14.0
       - onnxruntime==1.15.1
       - opencv-python==4.8.0.76
+      - openpyxl==3.1.2
       - opt-einsum==3.3.0
       - pacmap==0.7.0
       - pandas==2.0.3
@@ -251,6 +255,7 @@ dependencies:
       - segment-anything==1.0
       - sentencepiece==0.1.99
       - smart-open==6.3.0
+      - tab-transformer-pytorch==0.2.6
       - tabulate==0.9.0
       - tenacity==8.2.3
       - tensorboard==2.13.0
@@ -267,6 +272,7 @@ dependencies:
       - timm==0.6.11
       - tokenizers==0.13.3
       - toml==0.10.2
+      - toposort==1.10
       - torchsampler==0.1.2
       - tqdm==4.66.0
       - transformers==4.31.0
@@ -277,8 +283,7 @@ dependencies:
       - tzdata==2023.3
       - umap-learn==0.5.3
       - upolygon==0.1.10
-      - urllib3==2.0.6
+      - urllib3==1.26.18
       - werkzeug==2.3.7
       - wget==3.2
       - wrapt==1.15.0
-prefix: /home/lmx/.conda/envs/mx
