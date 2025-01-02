@@ -23,6 +23,10 @@ __all__ = [
     "vit_l_16",
     "vit_l_32",
     "vit_h_14",
+    "clip_vit_b_32",
+    "clip_vit_b_16",
+    'clip_vit_l_32',
+    "clip_vit_b_16_encoder"
 ]
 
 def _log_api_usage_once(obj: Any) -> None:
@@ -590,12 +594,38 @@ def vit_h_14(pretrained=True, progress=True, num_classes=1000, **kwargs):
 
 
 def clip_vit_b_32_encoder():
-    model, _ = clip.load('VIT-B/32', device='cpu')
+    model, _ = clip.load('ViT-B/32', device='cpu')
     model = model.visual
     return model    
 
 def clip_vit_b_32(num_classes):
     model = clip_vit_b_32_encoder()
+    model = nn.Sequential(
+        model,
+        nn.Linear(512, num_classes)
+    )    
+    return model
+
+def clip_vit_b_16_encoder():
+    model, _ = clip.load('ViT-B/16', device='cpu')
+    model = model.visual
+    return model    
+
+def clip_vit_b_16(num_classes):
+    model = clip_vit_b_16_encoder()
+    model = nn.Sequential(
+        model,
+        nn.Linear(512, num_classes)
+    )    
+    return model
+
+def clip_vit_l_32_encoder():
+    model, _ = clip.load('ViT-L/14', device='cpu')
+    model = model.visual
+    return model    
+
+def clip_vit_l_32(num_classes):
+    model = clip_vit_l_32_encoder()
     model = nn.Sequential(
         model,
         nn.Linear(768, num_classes)

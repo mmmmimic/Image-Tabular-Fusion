@@ -6,7 +6,7 @@ from .residual_modules import ResidualConnection
 from .modules import AttentivePooling
 from .llm import clip_bert
 from .resnet import clip_resnet50_encoder, medclip_resnet50_encoder , pubmedclip_resnet50_encoder
-from .vit import clip_vit_b_32_encoder
+from .vit import clip_vit_b_16_encoder
 from .mmdynamics import MMDynamic
 
 class MultimodalModel(nn.Module):
@@ -78,6 +78,9 @@ class MultimodalModel(nn.Module):
         elif encoder_name == 'rn50_clip':
             model = clip_resnet50_encoder()
             assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
+        elif encoder_name == 'vitb16_clip':
+            model = clip_vit_b_16_encoder()
+            assert self.feat_dim == 512,f'embedding dimension {self.feat_dim} is illegal'  
         elif encoder_name == 'rn50_clip_res':
             model_ = clip_resnet50_encoder()
             model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0, 
@@ -93,11 +96,11 @@ class MultimodalModel(nn.Module):
             model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0, 
                                        first_layer_finetune=self.first_layer_finetune) # deepcopy is integrated inside the module
             assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
-        elif encoder_name == 'vitb32_clip_res':
-            model = clip_vit_b_32_encoder()
+        elif encoder_name == 'vitb16_clip_res':
+            model_ = clip_vit_b_16_encoder()
             model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0, 
                                        first_layer_finetune=self.first_layer_finetune) # deepcopy is integrated inside the module
-            assert self.feat_dim == 768,f'embedding dimension {self.feat_dim} is illegal'            
+            assert self.feat_dim == 512,f'embedding dimension {self.feat_dim} is illegal'            
         else:
             raise ValueError        
         
