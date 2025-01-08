@@ -3,11 +3,12 @@ from .resnet import resnet50
 from .mlps import MLP
 import torch
 from .residual_modules import ResidualConnection
-from .modules import AttentivePooling
+from .modules import AttentivePooling, DinoFusion
 from .llm import clip_bert
 from .resnet import clip_resnet50_encoder, medclip_resnet50_encoder , pubmedclip_resnet50_encoder
-from .vit import clip_vit_b_16_encoder
+from .vit import clip_vit_b_16_encoder, clip_vit_b_32_encoder
 from .mmdynamics import MMDynamic
+from peft import LoraConfig, get_peft_model
 
 class MultimodalModel(nn.Module):
     def __init__(self, tab_emb_dim, num_classes, feat_dim = 1024, fusion='cat', 
@@ -25,7 +26,8 @@ class MultimodalModel(nn.Module):
         self.tab_emb_dim = tab_emb_dim
         self.feat_dim = feat_dim # joint feature dimension
         self.first_layer_finetune = first_layer_finetune
-
+        self.encoder_name = image_encoder
+        self.frozen_tab = frozen_tab
         
         self._build_image_encoder(image_encoder)
         self._build_tabular_encoder(tab_encoder)
@@ -47,8 +49,7 @@ class MultimodalModel(nn.Module):
             )
         else:
             self.classifier = nn.Linear(self.fused_dim, num_classes)
-        
-        self.frozen_tab = frozen_tab
+    
 
     def _init_fuser(self):
         if self.fusion == 'add':
@@ -67,7 +68,11 @@ class MultimodalModel(nn.Module):
             self.fused_dim = self.feat_dim
             self.attentive_pool = AttentivePooling(self.feat_dim, nhead=self.nhead)
             self.fuse = lambda x, y: self.attentive_pool(torch.cat((x.view(x.size(0), -1, x.size(-1)), 
-                                                                    y.view(y.size(0), -1, y.size(-1))), dim=1))        
+                                                                    y.view(y.size(0), -1, y.size(-1))), dim=1))      
+        elif self.fusion == 'dino':
+            self.fused_dim = self.feat_dim
+            self.dino_fusion = DinoFusion(self.feat_dim)
+            self.fuse = lambda x, y: self.dino_fusion(x, y)
         
         else:
             raise NotImplementedError      
@@ -78,31 +83,33 @@ class MultimodalModel(nn.Module):
         elif encoder_name == 'rn50_clip':
             model = clip_resnet50_encoder()
             assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
+        elif encoder_name == 'vitb16':
+            model = clip_vit_b_16_encoder()
+            assert self.feat_dim == 512,f'embedding dimension {self.feat_dim} is illegal'  
         elif encoder_name == 'vitb16_clip':
             model = clip_vit_b_16_encoder()
             assert self.feat_dim == 512,f'embedding dimension {self.feat_dim} is illegal'  
-        elif encoder_name == 'rn50_clip_res':
-            model_ = clip_resnet50_encoder()
-            model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0, 
-                                       first_layer_finetune=self.first_layer_finetune) # deepcopy is integrated inside the module
-            assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
-        elif encoder_name == 'rn50_medclip_res':
-            model_ = medclip_resnet50_encoder()
-            model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0, 
-                                       first_layer_finetune=self.first_layer_finetune) # deepcopy is integrated inside the module
+            lora_config = LoraConfig(
+                r=32, # 16
+                lora_alpha=128, # 64
+                target_modules=["attn"],
+                lora_dropout=0.5,
+            )
+
+            model = get_peft_model(model, lora_config)    
+        elif encoder_name == 'vitb32_clip':
+            model = clip_vit_b_32_encoder()
             assert self.feat_dim == 512,f'embedding dimension {self.feat_dim} is illegal'
-        elif encoder_name == 'rn50_pubmedclip_res':
-            model_ = pubmedclip_resnet50_encoder()
-            model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0, 
-                                       first_layer_finetune=self.first_layer_finetune) # deepcopy is integrated inside the module
-            assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
-        elif encoder_name == 'vitb16_clip_res':
-            model_ = clip_vit_b_16_encoder()
-            model = ResidualConnection(model_, model_, channel=self.feat_dim, dim=0, 
-                                       first_layer_finetune=self.first_layer_finetune) # deepcopy is integrated inside the module
-            assert self.feat_dim == 512,f'embedding dimension {self.feat_dim} is illegal'            
+            lora_config = LoraConfig(
+                r=16,
+                lora_alpha=64,
+                target_modules=["attn"],
+                lora_dropout=0.5,
+            )
+
+            model = get_peft_model(model, lora_config)         
         else:
-            raise ValueError        
+            raise ValueError   
         
         self.image_encoder = model      
         
@@ -113,7 +120,19 @@ class MultimodalModel(nn.Module):
             model = nn.Identity()
         elif encoder_name == 'clip':
             model = clip_bert()
-            assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'
+            assert self.feat_dim == 512,f'embedding dimension {self.feat_dim} is illegal'
+            if self.frozen_tab:
+                for param in model.parameters():
+                    param.requires_grad = False
+                model.prefix_embedding.requires_grad = True
+            # lora_config = LoraConfig(
+            #     r=4,
+            #     lora_alpha=16,
+            #     target_modules=["attn"],
+            #     lora_dropout=0.5,
+            # )
+
+            # model = get_peft_model(model, lora_config)
         elif encoder_name == 'clip_res':
             model_ = clip_bert()
             model = ResidualConnection(model_, model_, channel=1024, dim=2) # deepcopy is integrated inside the module
@@ -134,20 +153,67 @@ class MultimodalModel(nn.Module):
             assert self.feat_dim == 1024,f'embedding dimension {self.feat_dim} is illegal'                     
         else:
             raise ValueError
-        
+
         self.tab_encoder = model
 
-    def encode_image(self, image):
-        x = self.image_encoder(image)
+    def encode_image(self, x):
+        if 'clip' in self.encoder_name:
+            if 'rn' not in self.encoder_name:
+                x = self.image_encoder.conv1(x)
+                x = x.reshape(x.shape[0], x.shape[1], -1)
+                x = x.permute(0,2,1)
+                x = torch.cat([self.image_encoder.class_embedding.to(x.dtype) + torch.zeros(x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device), x], dim=1)
+                x = x + self.image_encoder.positional_embedding.to(x.dtype)
+                x = self.image_encoder.ln_pre(x)
+
+                x = x.permute(1, 0, 2)  # NLD -> LND
+                x = self.image_encoder.transformer(x)
+                x = x.permute(1, 0, 2)  # LND -> NLD
+                x = self.image_encoder.ln_post(x)
+        
+                if self.image_encoder.proj is not None:
+                    x = x @ self.image_encoder.proj
+            else:
+                def stem(x):
+                    x = self.image_encoder.relu1(self.image_encoder.bn1(self.image_encoder.conv1(x)))
+                    x = self.image_encoder.relu2(self.image_encoder.bn2(self.image_encoder.conv2(x)))
+                    x = self.image_encoder.relu3(self.image_encoder.bn3(self.image_encoder.conv3(x)))
+                    x = self.image_encoder.avgpool(x)
+                    return x
+                x = stem(x)
+                x = self.image_encoder.layer1(x)
+                x = self.image_encoder.layer2(x)
+                x = self.image_encoder.layer3(x)
+                x = self.image_encoder.layer4(x)
+                x = x.flatten(start_dim=2).permute(2, 0, 1)  # NCHW -> (HW)NC
+                x = torch.cat([x.mean(dim=0, keepdim=True), x], dim=0)  # (HW+1)NC
+                x = x + self.image_encoder.attnpool.positional_embedding[:, None, :].to(x.dtype)  # (HW+1)NC
+                x, _ = nn.functional.multi_head_attention_forward(
+                query=x[0], key=x, value=x,
+                embed_dim_to_check=x.shape[-1],
+                num_heads=self.image_encoder.attnpool.num_heads,
+                q_proj_weight=self.image_encoder.attnpool.q_proj.weight,
+                k_proj_weight=self.image_encoder.attnpool.k_proj.weight,
+                v_proj_weight=self.image_encoder.attnpool.v_proj.weight,
+                in_proj_weight=None,
+                in_proj_bias=torch.cat([self.image_encoder.attnpool.q_proj.bias, self.image_encoder.attnpool.k_proj.bias, self.image_encoder.attnpool.v_proj.bias]),
+                bias_k=None,
+                bias_v=None,
+                add_zero_attn=False,
+                dropout_p=0,
+                out_proj_weight=self.image_encoder.attnpool.c_proj.weight,
+                out_proj_bias=self.image_encoder.attnpool.c_proj.bias,
+                use_separate_proj_weight=True,
+                training=self.image_encoder.attnpool.training,
+                need_weights=False
+            )
+                x = x.permute(1,0,2)
+        else:
+            x = self.image_encoder(x)
         return x          
     
     def encode_tabline(self, tab_line):
-        if self.frozen_tab:
-            with torch.no_grad():
-                self.tab_encoder.eval()
-                x = self.tab_encoder(tab_line)
-        else:
-            x = self.tab_encoder(tab_line)
+        x = self.tab_encoder(tab_line)
         return x
     
     def forward(self, tab_line, image, *args, **kwargs):
@@ -167,12 +233,12 @@ class LogitEmbeddingLayer(nn.Module):
         self.embedder = nn.Sequential(
             nn.Conv1d(1, 128, 1),
             nn.BatchNorm1d(128),
-            nn.ReLU(),
+            nn.GELU(),
             nn.Conv1d(128, 256, 1),
-            nn.Dropout(0.3),
             nn.BatchNorm1d(256),
-            nn.ReLU(),
-            nn.Conv1d(256, feat_dim, 1)
+            nn.GELU(),
+            nn.Conv1d(256, feat_dim, 1),
+            nn.GELU()
             )
         
         if zero_conv:

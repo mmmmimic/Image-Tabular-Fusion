@@ -632,6 +632,7 @@ def clip_vit_l_32(num_classes):
     )    
     return model
 
+
 if __name__ == "__main__":
     model = vit_b_16(pretrained=True, num_classes=50)
     print(model)

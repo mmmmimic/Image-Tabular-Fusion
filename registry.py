@@ -10,6 +10,9 @@ MODEL = {
     'resnet50': resnet50,
     'clip_resnet50': clip_resnet50,
     'vitb16': vit_b_16,
+    'clip_vitb16': clip_vit_b_16,
+    'clip_vitb32': clip_vit_b_32,
+    'clip_vitl32': clip_vit_l_32,
     'mm': MultimodalModel,
     'res_mm': ResMultimodalModel,
     'film': FilmHNN,
@@ -57,7 +60,13 @@ DATASET = {
     'isup': ISUP,
     'preload_isup': ISUPPre,
     'preloadres_isup': ISUPPreRes,
-    'preload_mug_tri': MUGTriPre
+    'preload_mug_tri': MUGTriPre,
+    'skin': Skin,
+    'preload_skin': SkinPre,
+    'res_skin': SkinRes,
+    'oasis': Oasis,
+    'preload_oasis': OasisPre,
+    'res_oasis': OasisRes
 }
 
 Embedder = {

@@ -41,7 +41,6 @@ def backup(exp_dir, config_dir):
     
     print(f"Backup saved at {backup_folder}.")
     
-
 def main(args, configs) -> int:
     exp_name = args.exp_name
     train_config = configs['train']

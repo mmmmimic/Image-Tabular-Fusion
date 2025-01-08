@@ -125,7 +125,7 @@ class TextEmbedder(DefaultEmbedder):
           sentence = self.chatgpt_tmpl
           # use chatgpt tmpl:
           for c in columns:
-            t = '<' + meta_info[c]['full_name'] + '>'
+            t = '<' + c + '>'
             sentence = sentence.replace(t, str(df[c].values[index]))
             line_sentence = sentence.split('\n')
             if not len(line_sentence[-1]):

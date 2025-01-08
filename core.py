@@ -119,11 +119,11 @@ class Trainer:
                        
     def _build_optimizer(self):
         if self.optimizer_type == 'sgd':
-            self.optimizer = torch.optim.SGD(self.model.parameters(), lr=self.lr, momentum=0.9, weight_decay=self.weight_decay)
+            self.optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, self.model.parameters()), lr=self.lr, momentum=0.9, weight_decay=self.weight_decay)
         elif self.optimizer_type == 'adam':
-            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+            self.optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, self.model.parameters()), lr=self.lr, weight_decay=self.weight_decay)
         elif self.optimizer_type == 'adamw':
-            self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+            self.optimizer = torch.optim.AdamW(filter(lambda p: p.requires_grad, self.model.parameters()), lr=self.lr, weight_decay=self.weight_decay)
         else:
             raise NameError
         
@@ -204,17 +204,20 @@ class Trainer:
             self.checkpoint = {}
             
     def _build_data_loader(self, train_data, val_data, **kwargs):
+        num_workers = 16
         if train_data is not None:
             if self.resampling:
                 self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, sampler=ImbalancedDatasetSampler(train_data), 
-                                               num_workers=6, **kwargs)
+                                               num_workers=num_workers, persistent_workers=True, **kwargs)
             else:
-                self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, shuffle=True, num_workers=6, **kwargs)
+                self.train_loader = DataLoader(dataset=train_data, batch_size=self.batch_size, shuffle=True, 
+                                                num_workers=num_workers, persistent_workers=True, **kwargs)
         else:
             self.train_loader = None
                 
         if val_data is not None:
-            self.test_loader = DataLoader(dataset=val_data, batch_size=self.batch_size, shuffle=False, num_workers=6, **kwargs)
+            self.test_loader = DataLoader(dataset=val_data, batch_size=self.batch_size, shuffle=False, num_workers=num_workers, 
+                                            persistent_workers=True, **kwargs)
         else:
             self.test_loader = None   
 
