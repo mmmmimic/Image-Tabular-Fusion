@@ -1,0 +1,132 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.0001, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['acc', 'avg_acc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'acc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+MLP(
+  (fc): Sequential(
+    (0): DenseLayer(
+      (conv): Linear(in_features=20, out_features=128, bias=True)
+      (bn): Identity()
+      (act_fn): ReLU()
+    )
+    (1): DenseLayer(
+      (conv): Linear(in_features=128, out_features=512, bias=True)
+      (bn): Identity()
+      (act_fn): ReLU()
+    )
+    (2): Linear(in_features=512, out_features=4, bias=True)
+  )
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 1.0673 | acc: 0.8949, avg_acc: 0.8958
+<--[VALIDATION]--> cse_loss: 1.0442 | acc: 0.7514, avg_acc: 0.6882
+[MODEL SAVED] epoch 0, with acc = 0.7514.
+Best acc: 0.7514 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.5934 | acc: 0.9688, avg_acc: 0.9699
+<--[VALIDATION]--> cse_loss: 0.8289 | acc: 0.6271, avg_acc: 0.4382
+Best acc: 0.7514 at epoch 0
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.2625 | acc: 0.9693, avg_acc: 0.9694
+<--[VALIDATION]--> cse_loss: 0.7787 | acc: 0.6271, avg_acc: 0.4382
+Best acc: 0.7514 at epoch 0
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.1572 | acc: 0.9720, avg_acc: 0.9724
+<--[VALIDATION]--> cse_loss: 0.7702 | acc: 0.6271, avg_acc: 0.4382
+Best acc: 0.7514 at epoch 0
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.0993 | acc: 0.9733, avg_acc: 0.9739
+<--[VALIDATION]--> cse_loss: 0.8904 | acc: 0.6271, avg_acc: 0.4382
+Best acc: 0.7514 at epoch 0
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.0491 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 0.9432 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 6
+<--[TRAINING]--> cse_loss: 0.0304 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 0.9662 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 7
+<--[TRAINING]--> cse_loss: 0.0250 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 0.9840 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 8
+<--[TRAINING]--> cse_loss: 0.0225 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.0183 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 9
+<--[TRAINING]--> cse_loss: 0.0129 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.0673 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 10
+<--[TRAINING]--> cse_loss: 0.0079 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.1218 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 11
+<--[TRAINING]--> cse_loss: 0.0050 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.1495 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 12
+<--[TRAINING]--> cse_loss: 0.0038 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.1642 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 13
+<--[TRAINING]--> cse_loss: 0.0032 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.1788 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 14
+<--[TRAINING]--> cse_loss: 0.0027 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.1853 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 15
+<--[TRAINING]--> cse_loss: 0.0025 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.1871 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 16
+<--[TRAINING]--> cse_loss: 0.0025 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.1882 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+
+epoch 17
+<--[TRAINING]--> cse_loss: 0.0025 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.1903 | acc: 0.6215, avg_acc: 0.4354
+Best acc: 0.7514 at epoch 0
+
+

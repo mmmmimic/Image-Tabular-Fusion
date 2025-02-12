@@ -1,0 +1,95 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 10, 'lr': 0.0001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['auc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'auc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+MLP(
+  (fc): Sequential(
+    (0): DenseLayer(
+      (conv): Linear(in_features=518, out_features=1024, bias=True)
+      (bn): Identity()
+      (act_fn): ReLU()
+    )
+    (1): Linear(in_features=1024, out_features=2, bias=True)
+  )
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 0.6868 | auc: 0.6633
+<--[VALIDATION]--> cse_loss: 0.6909 | auc: 0.6068
+[MODEL SAVED] epoch 0, with auc = 0.6068.
+Best auc: 0.6068 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.6811 | auc: 0.7217
+<--[VALIDATION]--> cse_loss: 0.6875 | auc: 0.6071
+[MODEL SAVED] epoch 1, with auc = 0.6071.
+Best auc: 0.6071 at epoch 1
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.6739 | auc: 0.7406
+<--[VALIDATION]--> cse_loss: 0.6790 | auc: 0.6139
+[MODEL SAVED] epoch 2, with auc = 0.6139.
+Best auc: 0.6139 at epoch 2
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.6643 | auc: 0.7695
+<--[VALIDATION]--> cse_loss: 0.6687 | auc: 0.6084
+Best auc: 0.6139 at epoch 2
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.6570 | auc: 0.7914
+<--[VALIDATION]--> cse_loss: 0.6728 | auc: 0.6083
+Best auc: 0.6139 at epoch 2
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.6495 | auc: 0.7960
+<--[VALIDATION]--> cse_loss: 0.6631 | auc: 0.6150
+[MODEL SAVED] epoch 5, with auc = 0.6150.
+Best auc: 0.6150 at epoch 5
+
+
+epoch 6
+<--[TRAINING]--> cse_loss: 0.6262 | auc: 0.8165
+<--[VALIDATION]--> cse_loss: 0.6447 | auc: 0.6133
+Best auc: 0.6150 at epoch 5
+
+
+epoch 7
+<--[TRAINING]--> cse_loss: 0.6057 | auc: 0.8314
+<--[VALIDATION]--> cse_loss: 0.6154 | auc: 0.6061
+Best auc: 0.6150 at epoch 5
+
+
+epoch 8
+<--[TRAINING]--> cse_loss: 0.5833 | auc: 0.8623
+<--[VALIDATION]--> cse_loss: 0.6348 | auc: 0.6049
+Best auc: 0.6150 at epoch 5
+
+
+epoch 9
+<--[TRAINING]--> cse_loss: 0.5665 | auc: 0.8720
+<--[VALIDATION]--> cse_loss: 0.6331 | auc: 0.6011
+Best auc: 0.6150 at epoch 5
+
+
+[MODEL SAVED] epoch 9.
+Validate on the best model.
+Resuming status from ./logs/skin_mlp/models/best_model_1734427453_8723533_epoch5.t7.
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 10, 'lr': 0.0001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['auc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'auc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Start validation.
+<--[TEST]--> cse_loss: 0.6671
+auc: 0.5633

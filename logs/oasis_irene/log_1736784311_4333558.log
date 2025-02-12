@@ -1,0 +1,44 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.0001, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['acc', 'avg_acc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'acc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+IRene(
+  (transformer): TransformerEncoder(
+    (layers): ModuleList(
+      (0-1): 2 x TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+        )
+        (linear1): Linear(in_features=768, out_features=2048, bias=True)
+        (dropout): Dropout(p=0.3, inplace=False)
+        (linear2): Linear(in_features=2048, out_features=768, bias=True)
+        (norm1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.3, inplace=False)
+        (dropout2): Dropout(p=0.3, inplace=False)
+      )
+    )
+  )
+  (linear_mapping): ModuleList(
+    (0-8): 9 x Linear(in_features=1, out_features=768, bias=True)
+  )
+  (dp): Dropout(p=0.2, inplace=False)
+  (img_patchize): Conv2d(3, 768, kernel_size=(16, 16), stride=(16, 16))
+  (fc): Linear(in_features=768, out_features=4, bias=True)
+)
+Validate on the best model.
+Resuming status from ./logs/oasis_irene/models/best_model_1736784199_8887644_epoch1.t7.
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.0001, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['acc', 'avg_acc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'acc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Start validation.
+<--[TEST]--> cse_loss: 4.1606
+acc: 0.5000, avg_acc: 0.5556

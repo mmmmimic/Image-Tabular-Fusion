@@ -80,44 +80,44 @@ def text_logit():
                 tab_embedder=DefaultEmbedder(), preload_images=False, 
                 root_dir=root_dir, modal=['tab'])
     embs = get_all(trainset, batch_size=32)
-    # new_emb = []
-    # for i in range(embs.shape[0]):
-    #     tmp = []
-    #     for j in range(embs.shape[1]):
-    #         tmp.append(float_to_fixed_bin_array(embs[i,j]))
-    #     tmp = torch.cat(tmp, dim=-1).unsqueeze(0)
-    #     new_emb.append(tmp)
-    # embs = torch.cat(new_emb, dim=0)
+    new_emb = []
+    for i in range(embs.shape[0]):
+        tmp = []
+        for j in range(embs.shape[1]):
+            tmp.append(float_to_fixed_bin_array(embs[i,j]))
+        tmp = torch.cat(tmp, dim=-1).unsqueeze(0)
+        new_emb.append(tmp)
+    embs = torch.cat(new_emb, dim=0)
     np.save('logit_train.npy', embs)
 
     trainset = Oasis(split='val', transforms=transforms, numerical=True, 
                 tab_embedder=DefaultEmbedder(), preload_images=False, 
                 root_dir=root_dir, modal=['tab'])
     embs = get_all(trainset, batch_size=32)
-    # new_emb = []
-    # for i in range(embs.shape[0]):
-    #     tmp = []
-    #     for j in range(embs.shape[1]):
-    #         tmp.append(float_to_fixed_bin_array(embs[i,j]))
-    #     tmp = torch.cat(tmp, dim=-1).unsqueeze(0)
-    #     new_emb.append(tmp)
-    # embs = torch.cat(new_emb, dim=0)
+    new_emb = []
+    for i in range(embs.shape[0]):
+        tmp = []
+        for j in range(embs.shape[1]):
+            tmp.append(float_to_fixed_bin_array(embs[i,j]))
+        tmp = torch.cat(tmp, dim=-1).unsqueeze(0)
+        new_emb.append(tmp)
+    embs = torch.cat(new_emb, dim=0)
     np.save('logit_val.npy', embs)
     
     trainset = Oasis(split='test', transforms=transforms, numerical=True, 
                 tab_embedder=DefaultEmbedder(), preload_images=False, 
                 root_dir=root_dir, modal=['tab'])
     embs = get_all(trainset, batch_size=32)
-    # new_emb = []
-    # for i in range(embs.shape[0]):
-    #     tmp = []
-    #     for j in range(embs.shape[1]):
-    #         tmp.append(float_to_fixed_bin_array(embs[i,j]))
-    #     tmp = torch.cat(tmp, dim=-1).unsqueeze(0)
-    #     new_emb.append(tmp)
-    # embs = torch.cat(new_emb, dim=0)
+    new_emb = []
+    for i in range(embs.shape[0]):
+        tmp = []
+        for j in range(embs.shape[1]):
+            tmp.append(float_to_fixed_bin_array(embs[i,j]))
+        tmp = torch.cat(tmp, dim=-1).unsqueeze(0)
+        new_emb.append(tmp)
+    embs = torch.cat(new_emb, dim=0)
     np.save('logit_test.npy', embs)
 
 if __name__ == "__main__":
-    # onehot_noaug()
+    onehot_noaug()
     text_logit()

@@ -1,0 +1,42 @@
+----------------------------
+
+Training configurations
+{'batch_size': 64, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': False, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['acc', 'avg_acc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'acc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+MLP(
+  (fc): Sequential(
+    (0): DenseLayer(
+      (conv): Linear(in_features=20, out_features=128, bias=True)
+      (bn): Identity()
+      (act_fn): ReLU()
+    )
+    (1): DenseLayer(
+      (conv): Linear(in_features=128, out_features=512, bias=True)
+      (bn): Identity()
+      (act_fn): ReLU()
+    )
+    (2): Linear(in_features=512, out_features=4, bias=True)
+  )
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 0.4508 | acc: 0.8529, avg_acc: 0.4021
+<--[VALIDATION]--> cse_loss: 0.4410 | acc: 0.8385, avg_acc: 0.4563
+[MODEL SAVED] epoch 0, with acc = 0.8385.
+Best acc: 0.8385 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.1703 | acc: 0.9388, avg_acc: 0.6151
+<--[VALIDATION]--> cse_loss: 0.5063 | acc: 0.8110, avg_acc: 0.4595
+Best acc: 0.8385 at epoch 0
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.0854 | acc: 0.9740, avg_acc: 0.8924
+<--[VALIDATION]--> cse_loss: 0.6456 | acc: 0.8110, avg_acc: 0.4720
+Best acc: 0.8385 at epoch 0
+
+

@@ -1,0 +1,53 @@
+train:
+  batch_size: 32
+  num_epochs: 10
+  lr: 0.0001
+  weight_decay: 0.01
+  warmup_steps: 100 # 0 if activating reduceonplateau
+  optimizer_type: adamw # (sgd, adam, adamw)
+  resampling: True # True if sample number is considerably imbalanced among categories 
+  device: cuda # (cuda, cpu)
+  accum_step: 1 # >1 means gradient accumulation over iterations
+  mode: accum # (accum, avg), if the dataset is too large, set to avg to run AverageMeter over batches
+  metric_names: ['auc'] # ('acc', 'avg_acc', 'auc', 'acc@3', 'acc@5')
+  criterion: # specify cost function
+    cse: 
+      weight: 1
+      config: {}
+  monitor_metric: auc
+  seed: 2025 # -1 for not fixing random seed
+   
+data:
+  dataset: preload_skin
+  config:
+    transforms:
+      tabular:
+        # name: scarf # [scarf, random_mask, identity]
+        # config:
+        #   corrupt_rate: 0.3
+        name: identity
+        config: {}
+      image:
+        train_shape: [128, 128]
+        test_shape: [128, 128]
+        norm: True
+        aug_rate: 0
+        train_augs: ""
+        test_augs: ""
+    modal: ['tab']
+    kwd: 'onehot_noaug'
+
+model:
+  name: mlp
+  wrapper:
+    wrapper_input: dict # (tuple) | (dict)
+    model_input: tensor # (tensor) | (dict)
+    model_output: tensor # (tensor) | (dict)
+    kwd: 'tab_line' # only applicable when dataloader item is of type (dict), but model input is of type (tensor)
+  config:
+    in_channels: 518
+    out_channels: 2
+    hid_channels: [1024]
+    bn: False
+
+    

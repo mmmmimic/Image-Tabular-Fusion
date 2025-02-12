@@ -1,0 +1,837 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['auc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'auc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+ResMultimodalModel(
+  (image_encoder): PeftModel(
+    (base_model): LoraModel(
+      (model): VisionTransformer(
+        (conv1): Conv2d(3, 768, kernel_size=(32, 32), stride=(32, 32), bias=False)
+        (ln_pre): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        (transformer): Transformer(
+          (resblocks): Sequential(
+            (0): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (1): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (2): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (3): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (4): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (5): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (6): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (7): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (8): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (9): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (10): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+            (11): ResidualAttentionBlock(
+              (attn): lora.MultiheadAttention(
+                (base_layer): MultiheadAttention(
+                  (out_proj): lora.Linear(
+                    (base_layer): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+                    (lora_dropout): ModuleDict(
+                      (default): Dropout(p=0.5, inplace=False)
+                    )
+                    (lora_A): ModuleDict(
+                      (default): Linear(in_features=768, out_features=32, bias=False)
+                    )
+                    (lora_B): ModuleDict(
+                      (default): Linear(in_features=32, out_features=768, bias=False)
+                    )
+                    (lora_embedding_A): ParameterDict()
+                    (lora_embedding_B): ParameterDict()
+                    (lora_magnitude_vector): ModuleDict()
+                  )
+                )
+                (lora_dropout): ModuleDict(
+                  (default): Dropout(p=0.5, inplace=False)
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=768, out_features=32, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=32, out_features=2304, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+              (mlp): Sequential(
+                (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+                (gelu): QuickGELU()
+                (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+              )
+              (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+            )
+          )
+        )
+        (ln_post): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+      )
+    )
+  )
+  (tab_encoder): ClipTransformer(
+    (transformer): CLIP(
+      (transformer): Transformer(
+        (resblocks): Sequential(
+          (0): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (1): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (2): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (3): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (4): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (5): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (6): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (7): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (8): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (9): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (10): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+          (11): ResidualAttentionBlock(
+            (attn): MultiheadAttention(
+              (out_proj): NonDynamicallyQuantizableLinear(in_features=512, out_features=512, bias=True)
+            )
+            (ln_1): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+            (mlp): Sequential(
+              (c_fc): Linear(in_features=512, out_features=2048, bias=True)
+              (gelu): QuickGELU()
+              (c_proj): Linear(in_features=2048, out_features=512, bias=True)
+            )
+            (ln_2): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+          )
+        )
+      )
+      (token_embedding): Embedding(49408, 512)
+      (ln_final): LayerNorm((512,), eps=1e-05, elementwise_affine=True)
+    )
+  )
+  (dino_fusion): DinoFusion(
+    (fc1): Sequential(
+      (0): Linear(in_features=512, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Linear(in_features=64, out_features=512, bias=False)
+    )
+    (fc2): Sequential(
+      (0): Linear(in_features=512, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Linear(in_features=64, out_features=512, bias=False)
+    )
+    (fc1_teacher): Sequential(
+      (0): Linear(in_features=512, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Linear(in_features=64, out_features=512, bias=False)
+    )
+    (fc2_teacher): Sequential(
+      (0): Linear(in_features=512, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Linear(in_features=64, out_features=512, bias=False)
+    )
+    (gcn1): Sequential(
+      (0): Linear(in_features=512, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Linear(in_features=64, out_features=512, bias=True)
+      (4): GELU(approximate='none')
+    )
+    (gcn2): Sequential(
+      (0): Linear(in_features=512, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Linear(in_features=64, out_features=512, bias=True)
+      (4): GELU(approximate='none')
+    )
+    (gcn3): Sequential(
+      (0): Linear(in_features=512, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Linear(in_features=64, out_features=512, bias=True)
+      (4): GELU(approximate='none')
+    )
+    (gcn4): Sequential(
+      (0): Linear(in_features=512, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Linear(in_features=64, out_features=512, bias=True)
+      (4): GELU(approximate='none')
+    )
+    (attn_pool): Sequential(
+      (0): Linear(in_features=512, out_features=64, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Linear(in_features=64, out_features=1, bias=True)
+      (4): Sigmoid()
+    )
+    (fc): Sequential(
+      (0): Dropout(p=0.5, inplace=False)
+      (1): Linear(in_features=2048, out_features=512, bias=True)
+    )
+  )
+  (classifier): Linear(in_features=512, out_features=2, bias=True)
+  (embedder): LogitEmbeddingLayer(
+    (embedder): Sequential(
+      (0): Conv1d(32, 128, kernel_size=(1,), stride=(1,))
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.5, inplace=False)
+      (3): Conv1d(128, 512, kernel_size=(1,), stride=(1,))
+    )
+    (zero_conv): Linear(in_features=512, out_features=512, bias=True)
+  )
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 1.0753 | auc: 0.5538
+<--[VALIDATION]--> cse_loss: 0.6772 | auc: 0.6239
+[MODEL SAVED] epoch 0, with auc = 0.6239.
+Best auc: 0.6239 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.7534 | auc: 0.6323
+<--[VALIDATION]--> cse_loss: 0.7089 | auc: 0.6005
+Best auc: 0.6239 at epoch 0
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.6688 | auc: 0.7039
+<--[VALIDATION]--> cse_loss: 0.6294 | auc: 0.6588
+[MODEL SAVED] epoch 2, with auc = 0.6588.
+Best auc: 0.6588 at epoch 2
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.5942 | auc: 0.7609
+<--[VALIDATION]--> cse_loss: 0.5280 | auc: 0.6740
+[MODEL SAVED] epoch 3, with auc = 0.6740.
+Best auc: 0.6740 at epoch 3
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.5339 | auc: 0.8047
+<--[VALIDATION]--> cse_loss: 0.6464 | auc: 0.6618
+Best auc: 0.6740 at epoch 3
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.5390 | auc: 0.8089
+<--[VALIDATION]--> cse_loss: 0.5806 | auc: 0.6460
+Best auc: 0.6740 at epoch 3
+
+
+epoch 6
+<--[TRAINING]--> cse_loss: 0.4683 | auc: 0.8585
+<--[VALIDATION]--> cse_loss: 0.8309 | auc: 0.6380
+Best auc: 0.6740 at epoch 3
+
+
+epoch 7
+<--[TRAINING]--> cse_loss: 0.4331 | auc: 0.8797
+<--[VALIDATION]--> cse_loss: 0.6324 | auc: 0.6387
+Best auc: 0.6740 at epoch 3
+
+
+epoch 8
+<--[TRAINING]--> cse_loss: 0.3462 | auc: 0.9239
+<--[VALIDATION]--> cse_loss: 0.6732 | auc: 0.6224
+Best auc: 0.6740 at epoch 3
+
+
+epoch 9
+<--[TRAINING]--> cse_loss: 0.2588 | auc: 0.9588
+<--[VALIDATION]--> cse_loss: 0.8513 | auc: 0.6344
+Best auc: 0.6740 at epoch 3
+
+
+epoch 10
+<--[TRAINING]--> cse_loss: 0.2102 | auc: 0.9725
+<--[VALIDATION]--> cse_loss: 0.8260 | auc: 0.6280
+Best auc: 0.6740 at epoch 3
+
+
+epoch 11
+<--[TRAINING]--> cse_loss: 0.1819 | auc: 0.9799
+<--[VALIDATION]--> cse_loss: 0.8145 | auc: 0.6317
+Best auc: 0.6740 at epoch 3
+
+
+epoch 12
+<--[TRAINING]--> cse_loss: 0.3178 | auc: 0.9383
+<--[VALIDATION]--> cse_loss: 0.6428 | auc: 0.6032
+Best auc: 0.6740 at epoch 3
+
+
+epoch 13
+<--[TRAINING]--> cse_loss: 0.2500 | auc: 0.9607
+<--[VALIDATION]--> cse_loss: 0.9076 | auc: 0.6405
+Best auc: 0.6740 at epoch 3
+
+
+epoch 14
+<--[TRAINING]--> cse_loss: 0.2548 | auc: 0.9605
+<--[VALIDATION]--> cse_loss: 0.7030 | auc: 0.6542
+Best auc: 0.6740 at epoch 3
+
+
+epoch 15
+<--[TRAINING]--> cse_loss: 0.2039 | auc: 0.9734
+<--[VALIDATION]--> cse_loss: 0.8473 | auc: 0.6447
+Best auc: 0.6740 at epoch 3
+
+
+epoch 16
+<--[TRAINING]--> cse_loss: 0.1753 | auc: 0.9811
+<--[VALIDATION]--> cse_loss: 0.8767 | auc: 0.6416
+Best auc: 0.6740 at epoch 3
+
+

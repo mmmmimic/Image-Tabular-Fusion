@@ -1,0 +1,147 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['auc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'auc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+FilmHNN(
+  (conv1): ConvBnReLU(
+    (conv): Conv2d(3, 4, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn): BatchNorm2d(4, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+  )
+  (pool1): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (block1): ResBlock(
+    (conv1): Conv2d(4, 4, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn1): BatchNorm2d(4, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (conv2): Conv2d(4, 4, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn2): BatchNorm2d(4, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+  )
+  (block2): ResBlock(
+    (conv1): Conv2d(4, 8, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+    (bn1): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (conv2): Conv2d(8, 8, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn2): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+    (downsample): Sequential(
+      (0): Conv2d(4, 8, kernel_size=(1, 1), stride=(2, 2), bias=False)
+      (1): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (block3): ResBlock(
+    (conv1): Conv2d(8, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+    (bn1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (conv2): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn2): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+    (downsample): Sequential(
+      (0): Conv2d(8, 16, kernel_size=(1, 1), stride=(2, 2), bias=False)
+      (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (blockX): FilmBlock(
+    (conv1): Conv2d(16, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+    (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+    (global_pool): AdaptiveAvgPool2d(output_size=1)
+    (downsample): Sequential(
+      (0): Conv2d(16, 32, kernel_size=(1, 1), stride=(2, 2), bias=False)
+      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (aux): Sequential(
+      (aux_base): Linear(in_features=518, out_features=7, bias=False)
+      (aux_relu): ReLU()
+      (aux_out): Linear(in_features=7, out_features=32, bias=False)
+    )
+  )
+  (global_pool): AdaptiveAvgPool2d(output_size=1)
+  (fc): Linear(in_features=32, out_features=2, bias=True)
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 0.7158 | auc: 0.5329
+<--[VALIDATION]--> cse_loss: 0.6810 | auc: 0.5562
+[MODEL SAVED] epoch 0, with auc = 0.5562.
+Best auc: 0.5562 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.6904 | auc: 0.5691
+<--[VALIDATION]--> cse_loss: 0.6369 | auc: 0.5392
+Best auc: 0.5562 at epoch 0
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.6822 | auc: 0.5952
+<--[VALIDATION]--> cse_loss: 0.6444 | auc: 0.5712
+[MODEL SAVED] epoch 2, with auc = 0.5712.
+Best auc: 0.5712 at epoch 2
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.6798 | auc: 0.5902
+<--[VALIDATION]--> cse_loss: 0.6546 | auc: 0.5592
+Best auc: 0.5712 at epoch 2
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.6692 | auc: 0.6309
+<--[VALIDATION]--> cse_loss: 0.6558 | auc: 0.5689
+Best auc: 0.5712 at epoch 2
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.6689 | auc: 0.6254
+<--[VALIDATION]--> cse_loss: 0.6567 | auc: 0.5825
+[MODEL SAVED] epoch 5, with auc = 0.5825.
+Best auc: 0.5825 at epoch 5
+
+
+epoch 6
+<--[TRAINING]--> cse_loss: 0.6501 | auc: 0.6642
+<--[VALIDATION]--> cse_loss: 0.6570 | auc: 0.5887
+[MODEL SAVED] epoch 6, with auc = 0.5887.
+Best auc: 0.5887 at epoch 6
+
+
+epoch 7
+<--[TRAINING]--> cse_loss: 0.6285 | auc: 0.7000
+<--[VALIDATION]--> cse_loss: 0.6359 | auc: 0.5982
+[MODEL SAVED] epoch 7, with auc = 0.5982.
+Best auc: 0.5982 at epoch 7
+
+
+epoch 8
+<--[TRAINING]--> cse_loss: 0.6105 | auc: 0.7313
+<--[VALIDATION]--> cse_loss: 0.6557 | auc: 0.5947
+Best auc: 0.5982 at epoch 7
+
+
+epoch 9
+<--[TRAINING]--> cse_loss: 0.5778 | auc: 0.7716
+<--[VALIDATION]--> cse_loss: 0.6732 | auc: 0.5868
+Best auc: 0.5982 at epoch 7
+
+
+epoch 10
+<--[TRAINING]--> cse_loss: 0.5793 | auc: 0.7652
+<--[VALIDATION]--> cse_loss: 0.6592 | auc: 0.5928
+Best auc: 0.5982 at epoch 7
+
+
+epoch 11
+<--[TRAINING]--> cse_loss: 0.5831 | auc: 0.7633
+<--[VALIDATION]--> cse_loss: 0.6376 | auc: 0.5895
+Best auc: 0.5982 at epoch 7
+
+
+epoch 12
+<--[TRAINING]--> cse_loss: 0.5679 | auc: 0.7769
+<--[VALIDATION]--> cse_loss: 0.6581 | auc: 0.5746
+Best auc: 0.5982 at epoch 7
+
+

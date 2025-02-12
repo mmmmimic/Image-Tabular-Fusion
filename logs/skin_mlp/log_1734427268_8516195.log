@@ -1,0 +1,130 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.001, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['auc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'auc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+MLP(
+  (fc): Sequential(
+    (0): DenseLayer(
+      (conv): Linear(in_features=518, out_features=256, bias=True)
+      (bn): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act_fn): ReLU()
+    )
+    (1): Linear(in_features=256, out_features=2, bias=True)
+  )
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 0.6661 | auc: 0.6176
+<--[VALIDATION]--> cse_loss: 0.6729 | auc: 0.5592
+[MODEL SAVED] epoch 0, with auc = 0.5592.
+Best auc: 0.5592 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.6410 | auc: 0.6813
+<--[VALIDATION]--> cse_loss: 0.6640 | auc: 0.5574
+Best auc: 0.5592 at epoch 0
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.6022 | auc: 0.7662
+<--[VALIDATION]--> cse_loss: 0.6205 | auc: 0.5856
+[MODEL SAVED] epoch 2, with auc = 0.5856.
+Best auc: 0.5856 at epoch 2
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.5785 | auc: 0.8128
+<--[VALIDATION]--> cse_loss: 0.6038 | auc: 0.5830
+Best auc: 0.5856 at epoch 2
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.5512 | auc: 0.8582
+<--[VALIDATION]--> cse_loss: 0.6102 | auc: 0.5818
+Best auc: 0.5856 at epoch 2
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.5319 | auc: 0.8709
+<--[VALIDATION]--> cse_loss: 0.5999 | auc: 0.5691
+Best auc: 0.5856 at epoch 2
+
+
+epoch 6
+<--[TRAINING]--> cse_loss: 0.5000 | auc: 0.8923
+<--[VALIDATION]--> cse_loss: 0.5997 | auc: 0.5593
+Best auc: 0.5856 at epoch 2
+
+
+epoch 7
+<--[TRAINING]--> cse_loss: 0.4576 | auc: 0.9204
+<--[VALIDATION]--> cse_loss: 0.5674 | auc: 0.5520
+Best auc: 0.5856 at epoch 2
+
+
+epoch 8
+<--[TRAINING]--> cse_loss: 0.4140 | auc: 0.9500
+<--[VALIDATION]--> cse_loss: 0.6096 | auc: 0.5564
+Best auc: 0.5856 at epoch 2
+
+
+epoch 9
+<--[TRAINING]--> cse_loss: 0.3947 | auc: 0.9515
+<--[VALIDATION]--> cse_loss: 0.6128 | auc: 0.5508
+Best auc: 0.5856 at epoch 2
+
+
+epoch 10
+<--[TRAINING]--> cse_loss: 0.3960 | auc: 0.9503
+<--[VALIDATION]--> cse_loss: 0.6022 | auc: 0.5468
+Best auc: 0.5856 at epoch 2
+
+
+epoch 11
+<--[TRAINING]--> cse_loss: 0.3856 | auc: 0.9556
+<--[VALIDATION]--> cse_loss: 0.5780 | auc: 0.5482
+Best auc: 0.5856 at epoch 2
+
+
+epoch 12
+<--[TRAINING]--> cse_loss: 0.3645 | auc: 0.9603
+<--[VALIDATION]--> cse_loss: 0.6027 | auc: 0.5300
+Best auc: 0.5856 at epoch 2
+
+
+epoch 13
+<--[TRAINING]--> cse_loss: 0.3429 | auc: 0.9610
+<--[VALIDATION]--> cse_loss: 0.6088 | auc: 0.5294
+Best auc: 0.5856 at epoch 2
+
+
+epoch 14
+<--[TRAINING]--> cse_loss: 0.3074 | auc: 0.9696
+<--[VALIDATION]--> cse_loss: 0.6318 | auc: 0.5273
+Best auc: 0.5856 at epoch 2
+
+
+epoch 15
+<--[TRAINING]--> cse_loss: 0.2801 | auc: 0.9744
+<--[VALIDATION]--> cse_loss: 0.6470 | auc: 0.5210
+Best auc: 0.5856 at epoch 2
+
+
+epoch 16
+<--[TRAINING]--> cse_loss: 0.2559 | auc: 0.9777
+<--[VALIDATION]--> cse_loss: 0.6343 | auc: 0.5137
+Best auc: 0.5856 at epoch 2
+
+
+epoch 17
+<--[TRAINING]--> cse_loss: 0.2477 | auc: 0.9801
+<--[VALIDATION]--> cse_loss: 0.6573 | auc: 0.5132
+Best auc: 0.5856 at epoch 2
+
+
+epoch 18
+<--[TRAINING]--> cse_loss: 0.2312 | auc: 0.9814

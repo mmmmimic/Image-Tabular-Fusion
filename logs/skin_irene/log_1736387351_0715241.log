@@ -1,0 +1,66 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['auc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'auc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+IRene(
+  (transformer): TransformerEncoder(
+    (layers): ModuleList(
+      (0-1): 2 x TransformerEncoderLayer(
+        (self_attn): MultiheadAttention(
+          (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+        )
+        (linear1): Linear(in_features=768, out_features=2048, bias=True)
+        (dropout): Dropout(p=0.3, inplace=False)
+        (linear2): Linear(in_features=2048, out_features=768, bias=True)
+        (norm1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        (norm2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        (dropout1): Dropout(p=0.3, inplace=False)
+        (dropout2): Dropout(p=0.3, inplace=False)
+      )
+    )
+  )
+  (linear_mapping): ModuleList(
+    (0-8): 9 x Linear(in_features=1, out_features=768, bias=True)
+  )
+  (dp): Dropout(p=0.2, inplace=False)
+  (img_patchize): Conv2d(3, 768, kernel_size=(16, 16), stride=(16, 16))
+  (fc): Linear(in_features=768, out_features=2, bias=True)
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 0.7528 | auc: 0.4906
+<--[VALIDATION]--> cse_loss: 0.9116 | auc: 0.5091
+[MODEL SAVED] epoch 0, with auc = 0.5091.
+Best auc: 0.5091 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.7002 | auc: 0.5254
+<--[VALIDATION]--> cse_loss: 0.9211 | auc: 0.5218
+[MODEL SAVED] epoch 1, with auc = 0.5218.
+Best auc: 0.5218 at epoch 1
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.7087 | auc: 0.5120
+<--[VALIDATION]--> cse_loss: 0.7652 | auc: 0.5049
+Best auc: 0.5218 at epoch 1
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.7007 | auc: 0.4943
+<--[VALIDATION]--> cse_loss: 0.7127 | auc: 0.4992
+Best auc: 0.5218 at epoch 1
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.6954 | auc: 0.4986
+<--[VALIDATION]--> cse_loss: 0.7605 | auc: 0.5080
+Best auc: 0.5218 at epoch 1
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.7130 | auc: 0.5106

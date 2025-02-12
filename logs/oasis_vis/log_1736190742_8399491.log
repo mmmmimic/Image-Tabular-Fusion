@@ -1,0 +1,780 @@
+----------------------------
+
+Training configurations
+{'batch_size': 64, 'num_epochs': 100, 'lr': 0.001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': False, 'device': 'cuda', 'accum_step': 1, 'mode': 'avg', 'metric_names': ['acc', 'avg_acc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'acc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+Sequential(
+  (0): VisionTransformer(
+    (conv1): Conv2d(3, 768, kernel_size=(16, 16), stride=(16, 16), bias=False)
+    (ln_pre): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+    (transformer): Transformer(
+      (resblocks): Sequential(
+        (0): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (1): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (2): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (3): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (4): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (5): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (6): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (7): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (8): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (9): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (10): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+        (11): ResidualAttentionBlock(
+          (attn): MultiheadAttention(
+            (out_proj): NonDynamicallyQuantizableLinear(in_features=768, out_features=768, bias=True)
+          )
+          (ln_1): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+          (mlp): Sequential(
+            (c_fc): Linear(in_features=768, out_features=3072, bias=True)
+            (gelu): QuickGELU()
+            (c_proj): Linear(in_features=3072, out_features=768, bias=True)
+          )
+          (ln_2): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+        )
+      )
+    )
+    (ln_post): LayerNorm((768,), eps=1e-05, elementwise_affine=True)
+  )
+  (1): Linear(in_features=512, out_features=4, bias=True)
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 0.7011 | acc: 0.7838, avg_acc: 0.3161
+<--[VALIDATION]--> cse_loss: 0.7957 | acc: 0.7423, avg_acc: 0.7422
+[MODEL SAVED] epoch 0, with acc = 0.7423.
+Best acc: 0.7423 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.6628 | acc: 0.7886, avg_acc: 0.3159
+<--[VALIDATION]--> cse_loss: 0.7996 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.6623 | acc: 0.7886, avg_acc: 0.3152
+<--[VALIDATION]--> cse_loss: 0.8067 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.6585 | acc: 0.7886, avg_acc: 0.3158
+<--[VALIDATION]--> cse_loss: 0.8070 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.6619 | acc: 0.7886, avg_acc: 0.3149
+<--[VALIDATION]--> cse_loss: 0.7849 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.6560 | acc: 0.7886, avg_acc: 0.3159
+<--[VALIDATION]--> cse_loss: 0.7721 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 6
+<--[TRAINING]--> cse_loss: 0.6500 | acc: 0.7886, avg_acc: 0.3141
+<--[VALIDATION]--> cse_loss: 0.7807 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 7
+<--[TRAINING]--> cse_loss: 0.6501 | acc: 0.7886, avg_acc: 0.3160
+<--[VALIDATION]--> cse_loss: 0.8308 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 8
+<--[TRAINING]--> cse_loss: 0.6554 | acc: 0.7886, avg_acc: 0.3142
+<--[VALIDATION]--> cse_loss: 0.7818 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 9
+<--[TRAINING]--> cse_loss: 0.6541 | acc: 0.7886, avg_acc: 0.3156
+<--[VALIDATION]--> cse_loss: 0.7844 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 10
+<--[TRAINING]--> cse_loss: 0.6505 | acc: 0.7886, avg_acc: 0.3152
+<--[VALIDATION]--> cse_loss: 0.7788 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 11
+<--[TRAINING]--> cse_loss: 0.6490 | acc: 0.7886, avg_acc: 0.3159
+<--[VALIDATION]--> cse_loss: 0.7838 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 12
+<--[TRAINING]--> cse_loss: 0.6479 | acc: 0.7886, avg_acc: 0.3158
+<--[VALIDATION]--> cse_loss: 0.7730 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 13
+<--[TRAINING]--> cse_loss: 0.6457 | acc: 0.7886, avg_acc: 0.3178
+<--[VALIDATION]--> cse_loss: 0.7787 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 14
+<--[TRAINING]--> cse_loss: 0.6413 | acc: 0.7886, avg_acc: 0.3162
+<--[VALIDATION]--> cse_loss: 0.7754 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 15
+<--[TRAINING]--> cse_loss: 0.6446 | acc: 0.7886, avg_acc: 0.3150
+<--[VALIDATION]--> cse_loss: 0.7635 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 16
+<--[TRAINING]--> cse_loss: 0.6512 | acc: 0.7886, avg_acc: 0.3138
+<--[VALIDATION]--> cse_loss: 0.7951 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 17
+<--[TRAINING]--> cse_loss: 0.6509 | acc: 0.7886, avg_acc: 0.3172
+<--[VALIDATION]--> cse_loss: 0.7834 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 18
+<--[TRAINING]--> cse_loss: 0.6492 | acc: 0.7886, avg_acc: 0.3151
+<--[VALIDATION]--> cse_loss: 0.7870 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 19
+<--[TRAINING]--> cse_loss: 0.6490 | acc: 0.7886, avg_acc: 0.3170
+<--[VALIDATION]--> cse_loss: 0.7641 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 20
+<--[TRAINING]--> cse_loss: 0.6490 | acc: 0.7886, avg_acc: 0.3158
+<--[VALIDATION]--> cse_loss: 0.7613 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 21
+<--[TRAINING]--> cse_loss: 0.6478 | acc: 0.7886, avg_acc: 0.3152
+<--[VALIDATION]--> cse_loss: 0.7946 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 22
+<--[TRAINING]--> cse_loss: 0.6455 | acc: 0.7886, avg_acc: 0.3152
+<--[VALIDATION]--> cse_loss: 0.7810 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 23
+<--[TRAINING]--> cse_loss: 0.6466 | acc: 0.7886, avg_acc: 0.3164
+<--[VALIDATION]--> cse_loss: 0.7798 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 24
+<--[TRAINING]--> cse_loss: 0.6436 | acc: 0.7886, avg_acc: 0.3155
+<--[VALIDATION]--> cse_loss: 0.7728 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 25
+<--[TRAINING]--> cse_loss: 0.6409 | acc: 0.7886, avg_acc: 0.3147
+<--[VALIDATION]--> cse_loss: 0.7663 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 26
+<--[TRAINING]--> cse_loss: 0.6418 | acc: 0.7886, avg_acc: 0.3145
+<--[VALIDATION]--> cse_loss: 0.7679 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 27
+<--[TRAINING]--> cse_loss: 0.6405 | acc: 0.7886, avg_acc: 0.3158
+<--[VALIDATION]--> cse_loss: 0.7684 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 28
+<--[TRAINING]--> cse_loss: 0.6378 | acc: 0.7886, avg_acc: 0.3154
+<--[VALIDATION]--> cse_loss: 0.7682 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 29
+<--[TRAINING]--> cse_loss: 0.6368 | acc: 0.7886, avg_acc: 0.3173
+<--[VALIDATION]--> cse_loss: 0.7683 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 30
+<--[TRAINING]--> cse_loss: 0.6374 | acc: 0.7886, avg_acc: 0.3157
+<--[VALIDATION]--> cse_loss: 0.7682 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 31
+<--[TRAINING]--> cse_loss: 0.6411 | acc: 0.7885, avg_acc: 0.3150
+<--[VALIDATION]--> cse_loss: 0.7993 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 32
+<--[TRAINING]--> cse_loss: 0.6461 | acc: 0.7885, avg_acc: 0.3147
+<--[VALIDATION]--> cse_loss: 0.7734 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 33
+<--[TRAINING]--> cse_loss: 0.6470 | acc: 0.7886, avg_acc: 0.3126
+<--[VALIDATION]--> cse_loss: 0.7750 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 34
+<--[TRAINING]--> cse_loss: 0.6464 | acc: 0.7886, avg_acc: 0.3173
+<--[VALIDATION]--> cse_loss: 0.7944 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 35
+<--[TRAINING]--> cse_loss: 0.6517 | acc: 0.7886, avg_acc: 0.3140
+<--[VALIDATION]--> cse_loss: 0.7866 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 36
+<--[TRAINING]--> cse_loss: 0.6481 | acc: 0.7886, avg_acc: 0.3145
+<--[VALIDATION]--> cse_loss: 0.7712 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 37
+<--[TRAINING]--> cse_loss: 0.6494 | acc: 0.7886, avg_acc: 0.3157
+<--[VALIDATION]--> cse_loss: 0.7673 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 38
+<--[TRAINING]--> cse_loss: 0.6479 | acc: 0.7886, avg_acc: 0.3172
+<--[VALIDATION]--> cse_loss: 0.7714 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 39
+<--[TRAINING]--> cse_loss: 0.6497 | acc: 0.7886, avg_acc: 0.3154
+<--[VALIDATION]--> cse_loss: 0.7624 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 40
+<--[TRAINING]--> cse_loss: 0.6467 | acc: 0.7886, avg_acc: 0.3157
+<--[VALIDATION]--> cse_loss: 0.7817 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 41
+<--[TRAINING]--> cse_loss: 0.6446 | acc: 0.7886, avg_acc: 0.3154
+<--[VALIDATION]--> cse_loss: 0.7699 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 42
+<--[TRAINING]--> cse_loss: 0.6465 | acc: 0.7886, avg_acc: 0.3141
+<--[VALIDATION]--> cse_loss: 0.7677 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 43
+<--[TRAINING]--> cse_loss: 0.6455 | acc: 0.7886, avg_acc: 0.3145
+<--[VALIDATION]--> cse_loss: 0.7681 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 44
+<--[TRAINING]--> cse_loss: 0.6454 | acc: 0.7886, avg_acc: 0.3148
+<--[VALIDATION]--> cse_loss: 0.7805 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 45
+<--[TRAINING]--> cse_loss: 0.6436 | acc: 0.7886, avg_acc: 0.3155
+<--[VALIDATION]--> cse_loss: 0.7889 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 46
+<--[TRAINING]--> cse_loss: 0.6455 | acc: 0.7885, avg_acc: 0.3157
+<--[VALIDATION]--> cse_loss: 0.7786 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 47
+<--[TRAINING]--> cse_loss: 0.6445 | acc: 0.7886, avg_acc: 0.3164
+<--[VALIDATION]--> cse_loss: 0.7571 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 48
+<--[TRAINING]--> cse_loss: 0.6435 | acc: 0.7886, avg_acc: 0.3154
+<--[VALIDATION]--> cse_loss: 0.7806 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 49
+<--[TRAINING]--> cse_loss: 0.6450 | acc: 0.7886, avg_acc: 0.3163
+<--[VALIDATION]--> cse_loss: 0.7776 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 50
+<--[TRAINING]--> cse_loss: 0.6420 | acc: 0.7886, avg_acc: 0.3141
+<--[VALIDATION]--> cse_loss: 0.7648 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 51
+<--[TRAINING]--> cse_loss: 0.6429 | acc: 0.7886, avg_acc: 0.3153
+<--[VALIDATION]--> cse_loss: 0.7583 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 52
+<--[TRAINING]--> cse_loss: 0.6412 | acc: 0.7886, avg_acc: 0.3170
+<--[VALIDATION]--> cse_loss: 0.7661 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 53
+<--[TRAINING]--> cse_loss: 0.6415 | acc: 0.7886, avg_acc: 0.3150
+<--[VALIDATION]--> cse_loss: 0.7666 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 0
+
+
+epoch 54
+<--[TRAINING]--> cse_loss: 0.6421 | acc: 0.7886, avg_acc: 0.3151
+<--[VALIDATION]--> cse_loss: 0.7646 | acc: 0.7423, avg_acc: 0.7423
+[MODEL SAVED] epoch 54, with acc = 0.7423.
+Best acc: 0.7423 at epoch 54
+
+
+epoch 55
+<--[TRAINING]--> cse_loss: 0.6417 | acc: 0.7886, avg_acc: 0.3161
+<--[VALIDATION]--> cse_loss: 0.7628 | acc: 0.7423, avg_acc: 0.7423
+Best acc: 0.7423 at epoch 54
+
+
+epoch 56
+<--[TRAINING]--> cse_loss: 0.6397 | acc: 0.7886, avg_acc: 0.3161
+<--[VALIDATION]--> cse_loss: 0.7597 | acc: 0.7423, avg_acc: 0.7423
+Best acc: 0.7423 at epoch 54
+
+
+epoch 57
+<--[TRAINING]--> cse_loss: 0.6383 | acc: 0.7885, avg_acc: 0.3165
+<--[VALIDATION]--> cse_loss: 0.7651 | acc: 0.7422, avg_acc: 0.7421
+Best acc: 0.7423 at epoch 54
+
+
+epoch 58
+<--[TRAINING]--> cse_loss: 0.6392 | acc: 0.7886, avg_acc: 0.3158
+<--[VALIDATION]--> cse_loss: 0.7620 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 54
+
+
+epoch 59
+<--[TRAINING]--> cse_loss: 0.6382 | acc: 0.7886, avg_acc: 0.3158
+<--[VALIDATION]--> cse_loss: 0.7648 | acc: 0.7419, avg_acc: 0.7419
+Best acc: 0.7423 at epoch 54
+
+
+epoch 60
+<--[TRAINING]--> cse_loss: 0.6379 | acc: 0.7886, avg_acc: 0.3152
+<--[VALIDATION]--> cse_loss: 0.7634 | acc: 0.7415, avg_acc: 0.7415
+Best acc: 0.7423 at epoch 54
+
+
+epoch 61
+<--[TRAINING]--> cse_loss: 0.6357 | acc: 0.7886, avg_acc: 0.3164
+<--[VALIDATION]--> cse_loss: 0.7651 | acc: 0.7415, avg_acc: 0.7414
+Best acc: 0.7423 at epoch 54
+
+
+epoch 62
+<--[TRAINING]--> cse_loss: 0.6392 | acc: 0.7887, avg_acc: 0.3157
+<--[VALIDATION]--> cse_loss: 0.7650 | acc: 0.7415, avg_acc: 0.7415
+Best acc: 0.7423 at epoch 54
+
+
+epoch 63
+<--[TRAINING]--> cse_loss: 0.6401 | acc: 0.7887, avg_acc: 0.3148
+<--[VALIDATION]--> cse_loss: 0.7863 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 54
+
+
+epoch 64
+<--[TRAINING]--> cse_loss: 0.6448 | acc: 0.7886, avg_acc: 0.3154
+<--[VALIDATION]--> cse_loss: 0.7762 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 54
+
+
+epoch 65
+<--[TRAINING]--> cse_loss: 0.6444 | acc: 0.7886, avg_acc: 0.3166
+<--[VALIDATION]--> cse_loss: 0.7995 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 54
+
+
+epoch 66
+<--[TRAINING]--> cse_loss: 0.6424 | acc: 0.7885, avg_acc: 0.3159
+<--[VALIDATION]--> cse_loss: 0.7589 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7423 at epoch 54
+
+
+epoch 67
+<--[TRAINING]--> cse_loss: 0.6427 | acc: 0.7886, avg_acc: 0.3157
+<--[VALIDATION]--> cse_loss: 0.7575 | acc: 0.7425, avg_acc: 0.7424
+[MODEL SAVED] epoch 67, with acc = 0.7425.
+Best acc: 0.7425 at epoch 67
+
+
+epoch 68
+<--[TRAINING]--> cse_loss: 0.6458 | acc: 0.7886, avg_acc: 0.3155
+<--[VALIDATION]--> cse_loss: 0.7749 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 69
+<--[TRAINING]--> cse_loss: 0.6474 | acc: 0.7886, avg_acc: 0.3154
+<--[VALIDATION]--> cse_loss: 0.7697 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 70
+<--[TRAINING]--> cse_loss: 0.6451 | acc: 0.7886, avg_acc: 0.3147
+<--[VALIDATION]--> cse_loss: 0.7834 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 71
+<--[TRAINING]--> cse_loss: 0.6474 | acc: 0.7886, avg_acc: 0.3158
+<--[VALIDATION]--> cse_loss: 0.7683 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 72
+<--[TRAINING]--> cse_loss: 0.6474 | acc: 0.7886, avg_acc: 0.3149
+<--[VALIDATION]--> cse_loss: 0.7855 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 73
+<--[TRAINING]--> cse_loss: 0.6482 | acc: 0.7886, avg_acc: 0.3158
+<--[VALIDATION]--> cse_loss: 0.7713 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 74
+<--[TRAINING]--> cse_loss: 0.6497 | acc: 0.7886, avg_acc: 0.3145
+<--[VALIDATION]--> cse_loss: 0.7906 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 75
+<--[TRAINING]--> cse_loss: 0.6517 | acc: 0.7886, avg_acc: 0.3168
+<--[VALIDATION]--> cse_loss: 0.8005 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 76
+<--[TRAINING]--> cse_loss: 0.6458 | acc: 0.7886, avg_acc: 0.3152
+<--[VALIDATION]--> cse_loss: 0.7760 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 77
+<--[TRAINING]--> cse_loss: 0.6470 | acc: 0.7886, avg_acc: 0.3155
+<--[VALIDATION]--> cse_loss: 0.7990 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 78
+<--[TRAINING]--> cse_loss: 0.6497 | acc: 0.7886, avg_acc: 0.3155
+<--[VALIDATION]--> cse_loss: 0.7838 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 79
+<--[TRAINING]--> cse_loss: 0.6442 | acc: 0.7886, avg_acc: 0.3149
+<--[VALIDATION]--> cse_loss: 0.7893 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 80
+<--[TRAINING]--> cse_loss: 0.6454 | acc: 0.7886, avg_acc: 0.3151
+<--[VALIDATION]--> cse_loss: 0.7763 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 81
+<--[TRAINING]--> cse_loss: 0.6443 | acc: 0.7886, avg_acc: 0.3146
+<--[VALIDATION]--> cse_loss: 0.7751 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 82
+<--[TRAINING]--> cse_loss: 0.6434 | acc: 0.7886, avg_acc: 0.3150
+<--[VALIDATION]--> cse_loss: 0.7862 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 83
+<--[TRAINING]--> cse_loss: 0.6479 | acc: 0.7886, avg_acc: 0.3171
+<--[VALIDATION]--> cse_loss: 0.7788 | acc: 0.7422, avg_acc: 0.7421
+Best acc: 0.7425 at epoch 67
+
+
+epoch 84
+<--[TRAINING]--> cse_loss: 0.6442 | acc: 0.7886, avg_acc: 0.3141
+<--[VALIDATION]--> cse_loss: 0.7773 | acc: 0.7421, avg_acc: 0.7420
+Best acc: 0.7425 at epoch 67
+
+
+epoch 85
+<--[TRAINING]--> cse_loss: 0.6437 | acc: 0.7886, avg_acc: 0.3144
+<--[VALIDATION]--> cse_loss: 0.7843 | acc: 0.7412, avg_acc: 0.7411
+Best acc: 0.7425 at epoch 67
+
+
+epoch 86
+<--[TRAINING]--> cse_loss: 0.6422 | acc: 0.7887, avg_acc: 0.3162
+<--[VALIDATION]--> cse_loss: 0.7907 | acc: 0.7320, avg_acc: 0.7319
+Best acc: 0.7425 at epoch 67
+
+
+epoch 87
+<--[TRAINING]--> cse_loss: 0.6408 | acc: 0.7887, avg_acc: 0.3157
+<--[VALIDATION]--> cse_loss: 0.7848 | acc: 0.7406, avg_acc: 0.7405
+Best acc: 0.7425 at epoch 67
+
+
+epoch 88
+<--[TRAINING]--> cse_loss: 0.6398 | acc: 0.7886, avg_acc: 0.3149
+<--[VALIDATION]--> cse_loss: 0.7943 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 89
+<--[TRAINING]--> cse_loss: 0.6419 | acc: 0.7885, avg_acc: 0.3156
+<--[VALIDATION]--> cse_loss: 0.7901 | acc: 0.7420, avg_acc: 0.7419
+Best acc: 0.7425 at epoch 67
+
+
+epoch 90
+<--[TRAINING]--> cse_loss: 0.6410 | acc: 0.7885, avg_acc: 0.3166
+<--[VALIDATION]--> cse_loss: 0.7951 | acc: 0.7422, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 91
+<--[TRAINING]--> cse_loss: 0.6383 | acc: 0.7888, avg_acc: 0.3169
+<--[VALIDATION]--> cse_loss: 0.7695 | acc: 0.7410, avg_acc: 0.7410
+Best acc: 0.7425 at epoch 67
+
+
+epoch 92
+<--[TRAINING]--> cse_loss: 0.6370 | acc: 0.7887, avg_acc: 0.3160
+<--[VALIDATION]--> cse_loss: 0.7703 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 93
+<--[TRAINING]--> cse_loss: 0.6388 | acc: 0.7888, avg_acc: 0.3161
+<--[VALIDATION]--> cse_loss: 0.7826 | acc: 0.7423, avg_acc: 0.7422
+Best acc: 0.7425 at epoch 67
+
+
+epoch 94
+<--[TRAINING]--> cse_loss: 0.6388 | acc: 0.7886, avg_acc: 0.3173
+<--[VALIDATION]--> cse_loss: 0.7778 | acc: 0.7420, avg_acc: 0.7419
+Best acc: 0.7425 at epoch 67
+
+
+epoch 95
+<--[TRAINING]--> cse_loss: 0.6389 | acc: 0.7886, avg_acc: 0.3155
+<--[VALIDATION]--> cse_loss: 0.7831 | acc: 0.7422, avg_acc: 0.7421
+Best acc: 0.7425 at epoch 67
+
+
+epoch 96
+<--[TRAINING]--> cse_loss: 0.6365 | acc: 0.7886, avg_acc: 0.3147
+<--[VALIDATION]--> cse_loss: 0.7797 | acc: 0.7408, avg_acc: 0.7407
+Best acc: 0.7425 at epoch 67
+
+
+epoch 97
+<--[TRAINING]--> cse_loss: 0.6362 | acc: 0.7886, avg_acc: 0.3167
+<--[VALIDATION]--> cse_loss: 0.7776 | acc: 0.7408, avg_acc: 0.7407
+Best acc: 0.7425 at epoch 67
+
+
+epoch 98
+<--[TRAINING]--> cse_loss: 0.6354 | acc: 0.7886, avg_acc: 0.3169
+<--[VALIDATION]--> cse_loss: 0.7742 | acc: 0.7393, avg_acc: 0.7393
+Best acc: 0.7425 at epoch 67
+
+
+epoch 99
+<--[TRAINING]--> cse_loss: 0.6348 | acc: 0.7889, avg_acc: 0.3181
+<--[VALIDATION]--> cse_loss: 0.7712 | acc: 0.7365, avg_acc: 0.7365
+Best acc: 0.7425 at epoch 67
+
+
+[MODEL SAVED] epoch 99.
+Validate on the best model.
+Resuming status from ./logs/oasis_vis/models/best_model_1736219806_2447262_epoch67.t7.
+----------------------------
+
+Training configurations
+{'batch_size': 64, 'num_epochs': 100, 'lr': 0.001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': False, 'device': 'cuda', 'accum_step': 1, 'mode': 'avg', 'metric_names': ['acc', 'avg_acc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'acc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Start validation.
+<--[TEST]--> cse_loss: 0.5954
+acc: 0.7817, avg_acc: 0.3333

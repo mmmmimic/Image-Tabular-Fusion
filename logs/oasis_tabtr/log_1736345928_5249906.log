@@ -1,0 +1,101 @@
+----------------------------
+
+Training configurations
+{'batch_size': 64, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': False, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['acc', 'avg_acc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'acc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+tabtransformer(
+  (model): TabTransformer(
+    (category_embed): Embedding(16, 896)
+    (norm): LayerNorm((6,), eps=1e-05, elementwise_affine=True)
+    (transformer): Transformer(
+      (layers): ModuleList(
+        (0-5): 6 x ModuleList(
+          (0): PreNorm(
+            (norm): LayerNorm((1024,), eps=1e-05, elementwise_affine=True)
+            (fn): Attention(
+              (to_qkv): Linear(in_features=1024, out_features=384, bias=False)
+              (to_out): Linear(in_features=128, out_features=1024, bias=True)
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+          )
+          (1): PreNorm(
+            (norm): LayerNorm((1024,), eps=1e-05, elementwise_affine=True)
+            (fn): FeedForward(
+              (net): Sequential(
+                (0): Linear(in_features=1024, out_features=8192, bias=True)
+                (1): GEGLU()
+                (2): Dropout(p=0.1, inplace=False)
+                (3): Linear(in_features=4096, out_features=1024, bias=True)
+              )
+            )
+          )
+        )
+      )
+    )
+    (mlp): MLP(
+      (mlp): Sequential(
+        (0): Linear(in_features=3078, out_features=12312, bias=True)
+        (1): ReLU()
+        (2): Linear(in_features=12312, out_features=6156, bias=True)
+        (3): ReLU()
+        (4): Linear(in_features=6156, out_features=4, bias=True)
+      )
+    )
+  )
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 0.3173 | acc: 0.8576, avg_acc: 0.5396
+<--[VALIDATION]--> cse_loss: 1.0005 | acc: 0.7938, avg_acc: 0.3558
+[MODEL SAVED] epoch 0, with acc = 0.7938.
+Best acc: 0.7938 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.1244 | acc: 0.9467, avg_acc: 0.8446
+<--[VALIDATION]--> cse_loss: 1.5221 | acc: 0.8076, avg_acc: 0.4226
+[MODEL SAVED] epoch 1, with acc = 0.8076.
+Best acc: 0.8076 at epoch 1
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.0763 | acc: 0.9653, avg_acc: 0.9111
+<--[VALIDATION]--> cse_loss: 1.9967 | acc: 0.8110, avg_acc: 0.4409
+[MODEL SAVED] epoch 2, with acc = 0.8110.
+Best acc: 0.8110 at epoch 2
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.0491 | acc: 0.9785, avg_acc: 0.9502
+<--[VALIDATION]--> cse_loss: 1.2778 | acc: 0.7801, avg_acc: 0.3326
+Best acc: 0.8110 at epoch 2
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.0613 | acc: 0.9713, avg_acc: 0.9295
+<--[VALIDATION]--> cse_loss: 3.0069 | acc: 0.7835, avg_acc: 0.3695
+Best acc: 0.8110 at epoch 2
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.0338 | acc: 0.9832, avg_acc: 0.9645
+<--[VALIDATION]--> cse_loss: 3.5295 | acc: 0.7835, avg_acc: 0.3695
+Best acc: 0.8110 at epoch 2
+
+
+epoch 6
+<--[TRAINING]--> cse_loss: 0.0227 | acc: 0.9890, avg_acc: 0.9813
+<--[VALIDATION]--> cse_loss: 4.0655 | acc: 0.7835, avg_acc: 0.3695
+Best acc: 0.8110 at epoch 2
+
+
+epoch 7
+<--[TRAINING]--> cse_loss: 0.0470 | acc: 0.9839, avg_acc: 0.9567
+<--[VALIDATION]--> cse_loss: 1.7115 | acc: 0.7801, avg_acc: 0.3823
+Best acc: 0.8110 at epoch 2
+
+
+epoch 8
+<--[TRAINING]--> cse_loss: 0.0541 | acc: 0.9747, avg_acc: 0.9456

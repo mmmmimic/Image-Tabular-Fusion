@@ -1,0 +1,18 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 500, 'lr': 0.0001, 'weight_decay': 1e-05, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': False, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['auc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'auc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+MLP(
+  (fc): Sequential(
+    (0): DenseLayer(
+      (conv): Linear(in_features=4608, out_features=1024, bias=True)
+      (bn): Identity()
+      (act_fn): ReLU()
+    )
+    (1): Linear(in_features=1024, out_features=2, bias=True)
+  )
+)

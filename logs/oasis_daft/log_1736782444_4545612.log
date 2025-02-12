@@ -1,0 +1,122 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.0001, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['acc', 'avg_acc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'acc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+DAFT(
+  (conv1): ConvBnReLU(
+    (conv): Conv2d(3, 4, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn): BatchNorm2d(4, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+  )
+  (pool1): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  (block1): ResBlock(
+    (conv1): Conv2d(4, 4, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn1): BatchNorm2d(4, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (conv2): Conv2d(4, 4, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn2): BatchNorm2d(4, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+  )
+  (block2): ResBlock(
+    (conv1): Conv2d(4, 8, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+    (bn1): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (conv2): Conv2d(8, 8, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn2): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+    (downsample): Sequential(
+      (0): Conv2d(4, 8, kernel_size=(1, 1), stride=(2, 2), bias=False)
+      (1): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (block3): ResBlock(
+    (conv1): Conv2d(8, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+    (bn1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (conv2): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn2): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+    (downsample): Sequential(
+      (0): Conv2d(8, 16, kernel_size=(1, 1), stride=(2, 2), bias=False)
+      (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+  )
+  (blockX): DAFTBlock(
+    (conv1): Conv2d(16, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+    (bn1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (conv2): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (bn2): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (relu): ReLU(inplace=True)
+    (global_pool): AdaptiveAvgPool2d(output_size=1)
+    (downsample): Sequential(
+      (0): Conv2d(16, 32, kernel_size=(1, 1), stride=(2, 2), bias=False)
+      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    )
+    (aux): Sequential(
+      (aux_base): Linear(in_features=36, out_features=7, bias=False)
+      (aux_relu): ReLU()
+      (aux_out): Linear(in_features=7, out_features=32, bias=False)
+    )
+  )
+  (global_pool): AdaptiveAvgPool2d(output_size=1)
+  (fc): Linear(in_features=32, out_features=4, bias=True)
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 1.0837 | acc: 0.6178, avg_acc: 0.6187
+<--[VALIDATION]--> cse_loss: 1.1979 | acc: 0.3607, avg_acc: 0.2425
+[MODEL SAVED] epoch 0, with acc = 0.3607.
+Best acc: 0.3607 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.7458 | acc: 0.7822, avg_acc: 0.7827
+<--[VALIDATION]--> cse_loss: 1.0907 | acc: 0.3744, avg_acc: 0.2494
+[MODEL SAVED] epoch 1, with acc = 0.3744.
+Best acc: 0.3744 at epoch 1
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.4961 | acc: 0.9223, avg_acc: 0.9227
+<--[VALIDATION]--> cse_loss: 1.0001 | acc: 0.3816, avg_acc: 0.4411
+[MODEL SAVED] epoch 2, with acc = 0.3816.
+Best acc: 0.3816 at epoch 2
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.3585 | acc: 0.9846, avg_acc: 0.9845
+<--[VALIDATION]--> cse_loss: 1.0240 | acc: 0.3795, avg_acc: 0.4401
+Best acc: 0.3816 at epoch 2
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.2615 | acc: 0.9935, avg_acc: 0.9935
+<--[VALIDATION]--> cse_loss: 1.1259 | acc: 0.4972, avg_acc: 0.6868
+[MODEL SAVED] epoch 4, with acc = 0.4972.
+Best acc: 0.4972 at epoch 4
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.1558 | acc: 0.9995, avg_acc: 0.9995
+<--[VALIDATION]--> cse_loss: 1.2366 | acc: 0.4972, avg_acc: 0.6868
+Best acc: 0.4972 at epoch 4
+
+
+epoch 6
+<--[TRAINING]--> cse_loss: 0.1221 | acc: 0.9996, avg_acc: 0.9996
+<--[VALIDATION]--> cse_loss: 1.3275 | acc: 0.4972, avg_acc: 0.6868
+Best acc: 0.4972 at epoch 4
+
+
+epoch 7
+<--[TRAINING]--> cse_loss: 0.1069 | acc: 0.9995, avg_acc: 0.9995
+<--[VALIDATION]--> cse_loss: 1.2816 | acc: 0.4972, avg_acc: 0.6868
+Best acc: 0.4972 at epoch 4
+
+
+epoch 8
+<--[TRAINING]--> cse_loss: 0.0967 | acc: 1.0000, avg_acc: 1.0000
+<--[VALIDATION]--> cse_loss: 1.3528 | acc: 0.4972, avg_acc: 0.6868
+Best acc: 0.4972 at epoch 4
+
+

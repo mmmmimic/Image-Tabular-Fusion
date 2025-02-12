@@ -1,0 +1,29 @@
+----------------------------
+
+Training configurations
+{'batch_size': 64, 'num_epochs': 100, 'lr': 0.0001, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': False, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['acc', 'avg_acc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'acc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+MLP(
+  (fc): Sequential(
+    (0): DenseLayer(
+      (conv): Linear(in_features=20, out_features=128, bias=True)
+      (bn): Identity()
+      (act_fn): ReLU()
+    )
+    (1): DenseLayer(
+      (conv): Linear(in_features=128, out_features=512, bias=True)
+      (bn): Identity()
+      (act_fn): ReLU()
+    )
+    (2): Linear(in_features=512, out_features=4, bias=True)
+  )
+)
+Validate on the best model.
+Resuming status from ./logs/oasis_mlp/models/best_model_1736342312_146315_epoch0.t7.
+./logs/oasis_mlp/models/best_model_1736342312_146315_epoch0.t7 is broken.
+Start validation.
+<--[TEST]--> cse_loss: 1.3188
+acc: 0.7817, avg_acc: 0.3333

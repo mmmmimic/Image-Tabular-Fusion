@@ -1,0 +1,632 @@
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 1e-05, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['auc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'auc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Model structure: 
+MLP(
+  (fc): Sequential(
+    (0): DenseLayer(
+      (conv): Linear(in_features=518, out_features=256, bias=True)
+      (bn): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (act_fn): ReLU()
+    )
+    (1): Linear(in_features=256, out_features=2, bias=True)
+  )
+)
+epoch 0
+<--[TRAINING]--> cse_loss: 0.6860 | auc: 0.5882
+<--[VALIDATION]--> cse_loss: 0.7165 | auc: 0.5848
+[MODEL SAVED] epoch 0, with auc = 0.5848.
+Best auc: 0.5848 at epoch 0
+
+
+epoch 1
+<--[TRAINING]--> cse_loss: 0.6920 | auc: 0.5706
+<--[VALIDATION]--> cse_loss: 0.7322 | auc: 0.5827
+Best auc: 0.5848 at epoch 0
+
+
+epoch 2
+<--[TRAINING]--> cse_loss: 0.6832 | auc: 0.5958
+<--[VALIDATION]--> cse_loss: 0.7193 | auc: 0.5819
+Best auc: 0.5848 at epoch 0
+
+
+epoch 3
+<--[TRAINING]--> cse_loss: 0.6772 | auc: 0.6127
+<--[VALIDATION]--> cse_loss: 0.7174 | auc: 0.5807
+Best auc: 0.5848 at epoch 0
+
+
+epoch 4
+<--[TRAINING]--> cse_loss: 0.6633 | auc: 0.6373
+<--[VALIDATION]--> cse_loss: 0.7008 | auc: 0.5796
+Best auc: 0.5848 at epoch 0
+
+
+epoch 5
+<--[TRAINING]--> cse_loss: 0.6621 | auc: 0.6503
+<--[VALIDATION]--> cse_loss: 0.6915 | auc: 0.5800
+Best auc: 0.5848 at epoch 0
+
+
+epoch 6
+<--[TRAINING]--> cse_loss: 0.6528 | auc: 0.6742
+<--[VALIDATION]--> cse_loss: 0.6885 | auc: 0.5807
+Best auc: 0.5848 at epoch 0
+
+
+epoch 7
+<--[TRAINING]--> cse_loss: 0.6546 | auc: 0.6626
+<--[VALIDATION]--> cse_loss: 0.6744 | auc: 0.5777
+Best auc: 0.5848 at epoch 0
+
+
+epoch 8
+<--[TRAINING]--> cse_loss: 0.6363 | auc: 0.7110
+<--[VALIDATION]--> cse_loss: 0.6931 | auc: 0.5793
+Best auc: 0.5848 at epoch 0
+
+
+epoch 9
+<--[TRAINING]--> cse_loss: 0.6367 | auc: 0.7063
+<--[VALIDATION]--> cse_loss: 0.6841 | auc: 0.5804
+Best auc: 0.5848 at epoch 0
+
+
+epoch 10
+<--[TRAINING]--> cse_loss: 0.6427 | auc: 0.7018
+<--[VALIDATION]--> cse_loss: 0.6772 | auc: 0.5788
+Best auc: 0.5848 at epoch 0
+
+
+epoch 11
+<--[TRAINING]--> cse_loss: 0.6325 | auc: 0.7187
+<--[VALIDATION]--> cse_loss: 0.6624 | auc: 0.5724
+Best auc: 0.5848 at epoch 0
+
+
+epoch 12
+<--[TRAINING]--> cse_loss: 0.6384 | auc: 0.7001
+<--[VALIDATION]--> cse_loss: 0.6635 | auc: 0.5739
+Best auc: 0.5848 at epoch 0
+
+
+epoch 13
+<--[TRAINING]--> cse_loss: 0.6251 | auc: 0.7282
+<--[VALIDATION]--> cse_loss: 0.6609 | auc: 0.5745
+Best auc: 0.5848 at epoch 0
+
+
+epoch 14
+<--[TRAINING]--> cse_loss: 0.6231 | auc: 0.7342
+<--[VALIDATION]--> cse_loss: 0.6667 | auc: 0.5743
+Best auc: 0.5848 at epoch 0
+
+
+epoch 15
+<--[TRAINING]--> cse_loss: 0.6155 | auc: 0.7498
+<--[VALIDATION]--> cse_loss: 0.6589 | auc: 0.5701
+Best auc: 0.5848 at epoch 0
+
+
+epoch 16
+<--[TRAINING]--> cse_loss: 0.6099 | auc: 0.7579
+<--[VALIDATION]--> cse_loss: 0.6599 | auc: 0.5674
+Best auc: 0.5848 at epoch 0
+
+
+epoch 17
+<--[TRAINING]--> cse_loss: 0.6050 | auc: 0.7741
+<--[VALIDATION]--> cse_loss: 0.6509 | auc: 0.5707
+Best auc: 0.5848 at epoch 0
+
+
+epoch 18
+<--[TRAINING]--> cse_loss: 0.6073 | auc: 0.7616
+<--[VALIDATION]--> cse_loss: 0.6469 | auc: 0.5698
+Best auc: 0.5848 at epoch 0
+
+
+epoch 19
+<--[TRAINING]--> cse_loss: 0.6037 | auc: 0.7710
+<--[VALIDATION]--> cse_loss: 0.6456 | auc: 0.5723
+Best auc: 0.5848 at epoch 0
+
+
+epoch 20
+<--[TRAINING]--> cse_loss: 0.5974 | auc: 0.7828
+<--[VALIDATION]--> cse_loss: 0.6587 | auc: 0.5737
+Best auc: 0.5848 at epoch 0
+
+
+epoch 21
+<--[TRAINING]--> cse_loss: 0.6052 | auc: 0.7729
+<--[VALIDATION]--> cse_loss: 0.6585 | auc: 0.5728
+Best auc: 0.5848 at epoch 0
+
+
+epoch 22
+<--[TRAINING]--> cse_loss: 0.6027 | auc: 0.7774
+<--[VALIDATION]--> cse_loss: 0.6405 | auc: 0.5670
+Best auc: 0.5848 at epoch 0
+
+
+epoch 23
+<--[TRAINING]--> cse_loss: 0.6018 | auc: 0.7822
+<--[VALIDATION]--> cse_loss: 0.6558 | auc: 0.5652
+Best auc: 0.5848 at epoch 0
+
+
+epoch 24
+<--[TRAINING]--> cse_loss: 0.5986 | auc: 0.7849
+<--[VALIDATION]--> cse_loss: 0.6503 | auc: 0.5688
+Best auc: 0.5848 at epoch 0
+
+
+epoch 25
+<--[TRAINING]--> cse_loss: 0.5923 | auc: 0.7997
+<--[VALIDATION]--> cse_loss: 0.6472 | auc: 0.5653
+Best auc: 0.5848 at epoch 0
+
+
+epoch 26
+<--[TRAINING]--> cse_loss: 0.5855 | auc: 0.8139
+<--[VALIDATION]--> cse_loss: 0.6336 | auc: 0.5611
+Best auc: 0.5848 at epoch 0
+
+
+epoch 27
+<--[TRAINING]--> cse_loss: 0.5859 | auc: 0.8142
+<--[VALIDATION]--> cse_loss: 0.6421 | auc: 0.5615
+Best auc: 0.5848 at epoch 0
+
+
+epoch 28
+<--[TRAINING]--> cse_loss: 0.5848 | auc: 0.8115
+<--[VALIDATION]--> cse_loss: 0.6367 | auc: 0.5570
+Best auc: 0.5848 at epoch 0
+
+
+epoch 29
+<--[TRAINING]--> cse_loss: 0.5775 | auc: 0.8197
+<--[VALIDATION]--> cse_loss: 0.6341 | auc: 0.5603
+Best auc: 0.5848 at epoch 0
+
+
+epoch 30
+<--[TRAINING]--> cse_loss: 0.5615 | auc: 0.8462
+<--[VALIDATION]--> cse_loss: 0.6305 | auc: 0.5651
+Best auc: 0.5848 at epoch 0
+
+
+epoch 31
+<--[TRAINING]--> cse_loss: 0.5693 | auc: 0.8361
+<--[VALIDATION]--> cse_loss: 0.6240 | auc: 0.5585
+Best auc: 0.5848 at epoch 0
+
+
+epoch 32
+<--[TRAINING]--> cse_loss: 0.5709 | auc: 0.8366
+<--[VALIDATION]--> cse_loss: 0.6156 | auc: 0.5494
+Best auc: 0.5848 at epoch 0
+
+
+epoch 33
+<--[TRAINING]--> cse_loss: 0.5524 | auc: 0.8626
+<--[VALIDATION]--> cse_loss: 0.6322 | auc: 0.5532
+Best auc: 0.5848 at epoch 0
+
+
+epoch 34
+<--[TRAINING]--> cse_loss: 0.5519 | auc: 0.8564
+<--[VALIDATION]--> cse_loss: 0.6287 | auc: 0.5548
+Best auc: 0.5848 at epoch 0
+
+
+epoch 35
+<--[TRAINING]--> cse_loss: 0.5434 | auc: 0.8635
+<--[VALIDATION]--> cse_loss: 0.6252 | auc: 0.5533
+Best auc: 0.5848 at epoch 0
+
+
+epoch 36
+<--[TRAINING]--> cse_loss: 0.5401 | auc: 0.8677
+<--[VALIDATION]--> cse_loss: 0.6338 | auc: 0.5538
+Best auc: 0.5848 at epoch 0
+
+
+epoch 37
+<--[TRAINING]--> cse_loss: 0.5420 | auc: 0.8631
+<--[VALIDATION]--> cse_loss: 0.6257 | auc: 0.5502
+Best auc: 0.5848 at epoch 0
+
+
+epoch 38
+<--[TRAINING]--> cse_loss: 0.5340 | auc: 0.8767
+<--[VALIDATION]--> cse_loss: 0.6404 | auc: 0.5474
+Best auc: 0.5848 at epoch 0
+
+
+epoch 39
+<--[TRAINING]--> cse_loss: 0.5358 | auc: 0.8711
+<--[VALIDATION]--> cse_loss: 0.6435 | auc: 0.5456
+Best auc: 0.5848 at epoch 0
+
+
+epoch 40
+<--[TRAINING]--> cse_loss: 0.5337 | auc: 0.8667
+<--[VALIDATION]--> cse_loss: 0.6306 | auc: 0.5500
+Best auc: 0.5848 at epoch 0
+
+
+epoch 41
+<--[TRAINING]--> cse_loss: 0.5387 | auc: 0.8647
+<--[VALIDATION]--> cse_loss: 0.6287 | auc: 0.5487
+Best auc: 0.5848 at epoch 0
+
+
+epoch 42
+<--[TRAINING]--> cse_loss: 0.5259 | auc: 0.8863
+<--[VALIDATION]--> cse_loss: 0.6318 | auc: 0.5516
+Best auc: 0.5848 at epoch 0
+
+
+epoch 43
+<--[TRAINING]--> cse_loss: 0.5239 | auc: 0.8874
+<--[VALIDATION]--> cse_loss: 0.6330 | auc: 0.5506
+Best auc: 0.5848 at epoch 0
+
+
+epoch 44
+<--[TRAINING]--> cse_loss: 0.5372 | auc: 0.8705
+<--[VALIDATION]--> cse_loss: 0.6165 | auc: 0.5517
+Best auc: 0.5848 at epoch 0
+
+
+epoch 45
+<--[TRAINING]--> cse_loss: 0.5279 | auc: 0.8796
+<--[VALIDATION]--> cse_loss: 0.6456 | auc: 0.5507
+Best auc: 0.5848 at epoch 0
+
+
+epoch 46
+<--[TRAINING]--> cse_loss: 0.5242 | auc: 0.8846
+<--[VALIDATION]--> cse_loss: 0.6266 | auc: 0.5478
+Best auc: 0.5848 at epoch 0
+
+
+epoch 47
+<--[TRAINING]--> cse_loss: 0.5249 | auc: 0.8836
+<--[VALIDATION]--> cse_loss: 0.6149 | auc: 0.5428
+Best auc: 0.5848 at epoch 0
+
+
+epoch 48
+<--[TRAINING]--> cse_loss: 0.5179 | auc: 0.8935
+<--[VALIDATION]--> cse_loss: 0.6312 | auc: 0.5470
+Best auc: 0.5848 at epoch 0
+
+
+epoch 49
+<--[TRAINING]--> cse_loss: 0.5205 | auc: 0.8969
+<--[VALIDATION]--> cse_loss: 0.6285 | auc: 0.5456
+Best auc: 0.5848 at epoch 0
+
+
+epoch 50
+<--[TRAINING]--> cse_loss: 0.5190 | auc: 0.8896
+<--[VALIDATION]--> cse_loss: 0.6252 | auc: 0.5436
+Best auc: 0.5848 at epoch 0
+
+
+epoch 51
+<--[TRAINING]--> cse_loss: 0.5147 | auc: 0.8956
+<--[VALIDATION]--> cse_loss: 0.6492 | auc: 0.5466
+Best auc: 0.5848 at epoch 0
+
+
+epoch 52
+<--[TRAINING]--> cse_loss: 0.5131 | auc: 0.8978
+<--[VALIDATION]--> cse_loss: 0.6350 | auc: 0.5449
+Best auc: 0.5848 at epoch 0
+
+
+epoch 53
+<--[TRAINING]--> cse_loss: 0.5162 | auc: 0.9017
+<--[VALIDATION]--> cse_loss: 0.6223 | auc: 0.5449
+Best auc: 0.5848 at epoch 0
+
+
+epoch 54
+<--[TRAINING]--> cse_loss: 0.5179 | auc: 0.8877
+<--[VALIDATION]--> cse_loss: 0.6166 | auc: 0.5439
+Best auc: 0.5848 at epoch 0
+
+
+epoch 55
+<--[TRAINING]--> cse_loss: 0.5110 | auc: 0.8988
+<--[VALIDATION]--> cse_loss: 0.6272 | auc: 0.5415
+Best auc: 0.5848 at epoch 0
+
+
+epoch 56
+<--[TRAINING]--> cse_loss: 0.5154 | auc: 0.8928
+<--[VALIDATION]--> cse_loss: 0.6089 | auc: 0.5377
+Best auc: 0.5848 at epoch 0
+
+
+epoch 57
+<--[TRAINING]--> cse_loss: 0.5085 | auc: 0.9031
+<--[VALIDATION]--> cse_loss: 0.6382 | auc: 0.5427
+Best auc: 0.5848 at epoch 0
+
+
+epoch 58
+<--[TRAINING]--> cse_loss: 0.4963 | auc: 0.9146
+<--[VALIDATION]--> cse_loss: 0.6166 | auc: 0.5459
+Best auc: 0.5848 at epoch 0
+
+
+epoch 59
+<--[TRAINING]--> cse_loss: 0.4904 | auc: 0.9126
+<--[VALIDATION]--> cse_loss: 0.6246 | auc: 0.5435
+Best auc: 0.5848 at epoch 0
+
+
+epoch 60
+<--[TRAINING]--> cse_loss: 0.4869 | auc: 0.9136
+<--[VALIDATION]--> cse_loss: 0.6323 | auc: 0.5463
+Best auc: 0.5848 at epoch 0
+
+
+epoch 61
+<--[TRAINING]--> cse_loss: 0.4872 | auc: 0.9127
+<--[VALIDATION]--> cse_loss: 0.6239 | auc: 0.5416
+Best auc: 0.5848 at epoch 0
+
+
+epoch 62
+<--[TRAINING]--> cse_loss: 0.4839 | auc: 0.9168
+<--[VALIDATION]--> cse_loss: 0.6095 | auc: 0.5382
+Best auc: 0.5848 at epoch 0
+
+
+epoch 63
+<--[TRAINING]--> cse_loss: 0.4811 | auc: 0.9127
+<--[VALIDATION]--> cse_loss: 0.6216 | auc: 0.5385
+Best auc: 0.5848 at epoch 0
+
+
+epoch 64
+<--[TRAINING]--> cse_loss: 0.4727 | auc: 0.9206
+<--[VALIDATION]--> cse_loss: 0.6113 | auc: 0.5385
+Best auc: 0.5848 at epoch 0
+
+
+epoch 65
+<--[TRAINING]--> cse_loss: 0.4620 | auc: 0.9331
+<--[VALIDATION]--> cse_loss: 0.5987 | auc: 0.5375
+Best auc: 0.5848 at epoch 0
+
+
+epoch 66
+<--[TRAINING]--> cse_loss: 0.4486 | auc: 0.9415
+<--[VALIDATION]--> cse_loss: 0.6307 | auc: 0.5414
+Best auc: 0.5848 at epoch 0
+
+
+epoch 67
+<--[TRAINING]--> cse_loss: 0.4473 | auc: 0.9371
+<--[VALIDATION]--> cse_loss: 0.6144 | auc: 0.5375
+Best auc: 0.5848 at epoch 0
+
+
+epoch 68
+<--[TRAINING]--> cse_loss: 0.4616 | auc: 0.9277
+<--[VALIDATION]--> cse_loss: 0.6235 | auc: 0.5372
+Best auc: 0.5848 at epoch 0
+
+
+epoch 69
+<--[TRAINING]--> cse_loss: 0.4500 | auc: 0.9354
+<--[VALIDATION]--> cse_loss: 0.6333 | auc: 0.5334
+Best auc: 0.5848 at epoch 0
+
+
+epoch 70
+<--[TRAINING]--> cse_loss: 0.4538 | auc: 0.9330
+<--[VALIDATION]--> cse_loss: 0.6300 | auc: 0.5297
+Best auc: 0.5848 at epoch 0
+
+
+epoch 71
+<--[TRAINING]--> cse_loss: 0.4303 | auc: 0.9436
+<--[VALIDATION]--> cse_loss: 0.6168 | auc: 0.5304
+Best auc: 0.5848 at epoch 0
+
+
+epoch 72
+<--[TRAINING]--> cse_loss: 0.4400 | auc: 0.9322
+<--[VALIDATION]--> cse_loss: 0.6198 | auc: 0.5415
+Best auc: 0.5848 at epoch 0
+
+
+epoch 73
+<--[TRAINING]--> cse_loss: 0.4370 | auc: 0.9442
+<--[VALIDATION]--> cse_loss: 0.6239 | auc: 0.5318
+Best auc: 0.5848 at epoch 0
+
+
+epoch 74
+<--[TRAINING]--> cse_loss: 0.4319 | auc: 0.9425
+<--[VALIDATION]--> cse_loss: 0.6027 | auc: 0.5284
+Best auc: 0.5848 at epoch 0
+
+
+epoch 75
+<--[TRAINING]--> cse_loss: 0.4262 | auc: 0.9460
+<--[VALIDATION]--> cse_loss: 0.6345 | auc: 0.5297
+Best auc: 0.5848 at epoch 0
+
+
+epoch 76
+<--[TRAINING]--> cse_loss: 0.4273 | auc: 0.9419
+<--[VALIDATION]--> cse_loss: 0.6303 | auc: 0.5336
+Best auc: 0.5848 at epoch 0
+
+
+epoch 77
+<--[TRAINING]--> cse_loss: 0.4170 | auc: 0.9496
+<--[VALIDATION]--> cse_loss: 0.6091 | auc: 0.5312
+Best auc: 0.5848 at epoch 0
+
+
+epoch 78
+<--[TRAINING]--> cse_loss: 0.4237 | auc: 0.9411
+<--[VALIDATION]--> cse_loss: 0.6101 | auc: 0.5240
+Best auc: 0.5848 at epoch 0
+
+
+epoch 79
+<--[TRAINING]--> cse_loss: 0.4194 | auc: 0.9483
+<--[VALIDATION]--> cse_loss: 0.6185 | auc: 0.5256
+Best auc: 0.5848 at epoch 0
+
+
+epoch 80
+<--[TRAINING]--> cse_loss: 0.4204 | auc: 0.9451
+<--[VALIDATION]--> cse_loss: 0.6155 | auc: 0.5229
+Best auc: 0.5848 at epoch 0
+
+
+epoch 81
+<--[TRAINING]--> cse_loss: 0.4129 | auc: 0.9512
+<--[VALIDATION]--> cse_loss: 0.6266 | auc: 0.5271
+Best auc: 0.5848 at epoch 0
+
+
+epoch 82
+<--[TRAINING]--> cse_loss: 0.4041 | auc: 0.9520
+<--[VALIDATION]--> cse_loss: 0.6267 | auc: 0.5270
+Best auc: 0.5848 at epoch 0
+
+
+epoch 83
+<--[TRAINING]--> cse_loss: 0.4102 | auc: 0.9464
+<--[VALIDATION]--> cse_loss: 0.6207 | auc: 0.5288
+Best auc: 0.5848 at epoch 0
+
+
+epoch 84
+<--[TRAINING]--> cse_loss: 0.4070 | auc: 0.9469
+<--[VALIDATION]--> cse_loss: 0.6129 | auc: 0.5254
+Best auc: 0.5848 at epoch 0
+
+
+epoch 85
+<--[TRAINING]--> cse_loss: 0.3994 | auc: 0.9513
+<--[VALIDATION]--> cse_loss: 0.6264 | auc: 0.5265
+Best auc: 0.5848 at epoch 0
+
+
+epoch 86
+<--[TRAINING]--> cse_loss: 0.4124 | auc: 0.9468
+<--[VALIDATION]--> cse_loss: 0.6293 | auc: 0.5177
+Best auc: 0.5848 at epoch 0
+
+
+epoch 87
+<--[TRAINING]--> cse_loss: 0.4009 | auc: 0.9539
+<--[VALIDATION]--> cse_loss: 0.6262 | auc: 0.5275
+Best auc: 0.5848 at epoch 0
+
+
+epoch 88
+<--[TRAINING]--> cse_loss: 0.3904 | auc: 0.9617
+<--[VALIDATION]--> cse_loss: 0.6102 | auc: 0.5256
+Best auc: 0.5848 at epoch 0
+
+
+epoch 89
+<--[TRAINING]--> cse_loss: 0.3887 | auc: 0.9556
+<--[VALIDATION]--> cse_loss: 0.6196 | auc: 0.5208
+Best auc: 0.5848 at epoch 0
+
+
+epoch 90
+<--[TRAINING]--> cse_loss: 0.3830 | auc: 0.9643
+<--[VALIDATION]--> cse_loss: 0.6204 | auc: 0.5148
+Best auc: 0.5848 at epoch 0
+
+
+epoch 91
+<--[TRAINING]--> cse_loss: 0.3922 | auc: 0.9537
+<--[VALIDATION]--> cse_loss: 0.6313 | auc: 0.5214
+Best auc: 0.5848 at epoch 0
+
+
+epoch 92
+<--[TRAINING]--> cse_loss: 0.3951 | auc: 0.9534
+<--[VALIDATION]--> cse_loss: 0.6176 | auc: 0.5189
+Best auc: 0.5848 at epoch 0
+
+
+epoch 93
+<--[TRAINING]--> cse_loss: 0.3864 | auc: 0.9575
+<--[VALIDATION]--> cse_loss: 0.6450 | auc: 0.5211
+Best auc: 0.5848 at epoch 0
+
+
+epoch 94
+<--[TRAINING]--> cse_loss: 0.3849 | auc: 0.9594
+<--[VALIDATION]--> cse_loss: 0.6023 | auc: 0.5181
+Best auc: 0.5848 at epoch 0
+
+
+epoch 95
+<--[TRAINING]--> cse_loss: 0.3859 | auc: 0.9596
+<--[VALIDATION]--> cse_loss: 0.6098 | auc: 0.5176
+Best auc: 0.5848 at epoch 0
+
+
+epoch 96
+<--[TRAINING]--> cse_loss: 0.3909 | auc: 0.9540
+<--[VALIDATION]--> cse_loss: 0.6195 | auc: 0.5197
+Best auc: 0.5848 at epoch 0
+
+
+epoch 97
+<--[TRAINING]--> cse_loss: 0.3919 | auc: 0.9564
+<--[VALIDATION]--> cse_loss: 0.6335 | auc: 0.5134
+Best auc: 0.5848 at epoch 0
+
+
+epoch 98
+<--[TRAINING]--> cse_loss: 0.3959 | auc: 0.9524
+<--[VALIDATION]--> cse_loss: 0.6124 | auc: 0.5202
+Best auc: 0.5848 at epoch 0
+
+
+epoch 99
+<--[TRAINING]--> cse_loss: 0.3919 | auc: 0.9566
+<--[VALIDATION]--> cse_loss: 0.6338 | auc: 0.5167
+Best auc: 0.5848 at epoch 0
+
+
+[MODEL SAVED] epoch 99.
+Validate on the best model.
+Resuming status from ./logs/skin_mlp/models/best_model_1734427353_85705_epoch0.t7.
+----------------------------
+
+Training configurations
+{'batch_size': 32, 'num_epochs': 100, 'lr': 1e-05, 'weight_decay': 0.01, 'warmup_steps': 100, 'optimizer_type': 'adamw', 'resampling': True, 'device': 'cuda', 'accum_step': 1, 'mode': 'accum', 'metric_names': ['auc'], 'criterion': {'cse': {'weight': 1, 'config': {}}}, 'monitor_metric': 'auc', 'seed': 2025}
+----------------------------
+
+Random seed is fixed at 2025.
+Start validation.
+<--[TEST]--> cse_loss: 0.6986
+auc: 0.5370
